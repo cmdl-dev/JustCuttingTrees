@@ -101,9 +101,9 @@ update :: proc(state: ^GameState, delta: f32) {
 	player->playerUpdate(delta)
 
 	if player.state == PlayerState.INTERACTION {
-		for tree in state.trees {
+		for &tree in state.trees {
 			if rl.CheckCollisionRecs(player.interactionRect, tree.area) {
-				fmt.println("Something")
+				tree->onInteractable(&player)
 			}
 		}
 	}

@@ -1,5 +1,6 @@
 package main
 
+import "core:fmt"
 import "shared"
 import rl "vendor:raylib"
 
@@ -30,6 +31,8 @@ Player :: struct {
 	sprite:          Sprite,
 	interactionRect: Area2D,
 	state:           PlayerState,
+	treeStorage:     [dynamic]TreeReward,
+	addReward:       proc(player: ^Player, reward: [dynamic]TreeReward),
 	playerInput:     proc(player: ^Player, userInput: UserInput),
 	playerUpdate:    proc(player: ^Player, delta: f32),
 	playerDraw:      proc(player: ^Player),
@@ -55,10 +58,15 @@ createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 		moveable = moveable,
 		sprite = sprite,
 		interactionRect = interactionRect,
+		addReward = playerAddReward,
 		playerDraw = playerDraw,
 		playerUpdate = playerUpdate,
 		playerInput = playerInput,
 	}
+}
+playerAddReward :: proc(player: ^Player, rewards: [dynamic]TreeReward) {
+	fmt.printfln("something")
+	append(&player.treeStorage, ..rewards[:])
 }
 
 playerInput :: proc(player: ^Player, userInput: UserInput) {
@@ -81,6 +89,7 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 	moveActor(player, calculatedDelta)
 	sprite.position = position
 	interactionRect->update(position)
+
 
 }
 

@@ -1,5 +1,6 @@
 package main
 
+import "core:fmt"
 import "shared"
 import rl "vendor:raylib"
 
@@ -11,7 +12,16 @@ createCuttable :: proc(health: int) -> Cuttable {
 	return {health = health}
 }
 
-TreeReward :: struct {}
+LogType :: enum {
+	REGULAR,
+}
+TreeReward :: struct {
+	logType: LogType,
+}
+createLogReward :: proc(type: LogType) -> TreeReward {
+
+	return {type}
+}
 
 Tree :: struct {
 	using actor:    Actor,
@@ -20,7 +30,7 @@ Tree :: struct {
 	reward:         [dynamic]TreeReward,
 	sprite:         Sprite,
 	draw:           proc(tree: ^Tree),
-	onInteractable: proc(tree: ^Tree, actor: ^Actor),
+	onInteractable: proc(tree: ^Tree, actor: ^Player),
 }
 
 
@@ -33,12 +43,21 @@ createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: shared.I
 		rl.Rectangle{initialPosition.x, initialPosition.y, 32, 32},
 	)
 
-	return {actor = actor, cuttable = cuttable, sprite = sprite, draw = drawTree, area = area2D}
+	return {
+		actor = actor,
+		cuttable = cuttable,
+		sprite = sprite,
+		draw = drawTree,
+		area = area2D,
+		onInteractable = onInteractable,
+	}
 }
 
-onInteractable :: proc(tree: ^Tree, actor: ^Actor) {
+onInteractable :: proc(tree: ^Tree, player: ^Player) {
 	reward := tree->onCut()
-	// Do Something with reward
+	player->addReward(reward)
+	fmt.println("Reward type", reward)
+
 }
 
 drawTree :: proc(tree: ^Tree) {
@@ -58,6 +77,8 @@ createRegularTree :: proc(
 	initialPosition: shared.IVector2,
 ) -> RegularTree {
 	tree := createTree(fileName, treeHealth, initialPosition)
+	reward := createLogReward(LogType.REGULAR)
+	append(&tree.reward, reward)
 	tree.cuttable.onCut = onCutRegularTree
 	return {tree = tree}
 }
