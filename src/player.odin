@@ -90,9 +90,11 @@ getPlayerTotalScore :: proc(player: ^Player) -> (accumulator: i32) {
 drawScore :: proc(player: ^Player) {
 	using player
 
-	stringBuffer := strings.Builder{}
-	text := fmt.sbprintf(&stringBuffer, "%d", getPlayerTotalScore(player))
-	cText := strings.to_cstring(&stringBuffer)
+	b := strings.builder_make()
+	defer strings.builder_destroy(&b)
+
+	text := fmt.sbprintf(&b, "%d", getPlayerTotalScore(player))
+	cText := strings.to_cstring(&b)
 
 	textWidth := rl.MeasureText(cText, 32)
 	padding := i32(10)

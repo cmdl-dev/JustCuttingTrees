@@ -76,10 +76,10 @@ getTotalGameScore :: proc(gameState: ^GameState) -> (accumulator: i32) {
 drawTotalScore :: proc(gameState: ^GameState, position: shared.IVector2) {
 	using gameState
 
-
-	stringBuffer := strings.Builder{}
-	text := fmt.sbprintf(&stringBuffer, "%d", getTotalGameScore(gameState))
-	cText := strings.to_cstring(&stringBuffer)
+	b := strings.builder_make()
+	defer strings.builder_destroy(&b)
+	text := fmt.sbprintf(&b, "%d", getTotalGameScore(gameState))
+	cText := strings.to_cstring(&b)
 
 	textWidth := rl.MeasureText(cText, 32)
 	rl.DrawText(cText, i32(position.x), i32(position.y), 32, rl.BLACK)
