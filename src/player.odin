@@ -1,24 +1,10 @@
 package main
 
 import "core:fmt"
+import "core:strings"
 import "shared"
 import rl "vendor:raylib"
 
-Moveable :: struct {
-	velocity:  i32,
-	direction: shared.IVector2,
-	move:      proc(actor: ^Actor, newPosition: shared.IVector2),
-}
-
-createMoveable :: proc() -> Moveable {
-	return {move = moveActor, velocity = 200}
-}
-moveActor :: proc(actor: ^Actor, deltaPosition: shared.IVector2) {
-	using actor
-
-	position.x += deltaPosition.x
-	position.y += deltaPosition.y
-}
 PlayerState :: enum {
 	NONE,
 	INTERACTION,
@@ -40,10 +26,11 @@ Player :: struct {
 
 createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 
+	fileName := cstring("assets/Phoenix.png")
 	actor := createActor(initialPosition)
-	moveable := createMoveable()
+	moveable := createMoveable(200)
 
-	sprite := createSprite("assets/Phoenix.png", {50, 50})
+	sprite := createSprite(fileName, {50, 50})
 	sprite->setScale(2)
 
 
@@ -64,7 +51,6 @@ createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 	}
 }
 playerAddReward :: proc(player: ^Player, rewards: [dynamic]TreeReward) {
-	fmt.printfln("something")
 	append(&player.treeStorage, ..rewards[:])
 }
 
@@ -85,16 +71,33 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 		delta * f32(velocity) * direction.y,
 	}
 
-	moveActor(player, calculatedDelta)
+	player.moveable.move(player, calculatedDelta)
 	sprite.position = position
 	interactionRect->update(position)
-
-
 }
 
+drawScore :: proc(player: ^Player) {
+	using player
+
+	stringBuffer := strings.Builder{}
+	text := fmt.sbprintf(&stringBuffer, "%d", len(player.treeStorage))
+	cText := strings.to_cstring(&stringBuffer)
+
+	textWidth := rl.MeasureText(cText, 32)
+	padding := i32(10)
+	rl.DrawText(
+		cText,
+		i32(position.x) - textWidth / 2 + (player.sprite->getWidth() / 2),
+		i32(position.y) - textWidth - padding,
+		32,
+		rl.BLACK,
+	)
+
+}
 playerDraw :: proc(player: ^Player) {
 	using player
 
 	sprite->draw()
 	interactionRect->draw()
+	drawScore(player)
 }

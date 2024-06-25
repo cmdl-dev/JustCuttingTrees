@@ -4,6 +4,8 @@ package main
 import "constants"
 import "core:fmt"
 import "shared"
+
+import rnd "core:math/rand"
 import rl "vendor:raylib"
 
 
@@ -28,6 +30,17 @@ UserInput :: struct {
 	justInteracted: bool,
 }
 
+createManyTrees :: proc(count: i32) -> (trees: [dynamic]Tree) {
+	for c in 0 ..< count {
+		x := rnd.float32_range(200, 1500)
+		y := rnd.float32_range(200, 900)
+		regularTree := createRegularTree({x, y})
+
+		append(&trees, regularTree)
+	}
+	return trees
+}
+
 main :: proc() {
 	window := Window {
 		width  = constants.SCREEN_WIDTH,
@@ -45,9 +58,8 @@ main :: proc() {
 		update = update,
 		input  = input,
 	}
-	regularTree := createRegularTree({150, 150})
+	gState.trees = createManyTrees(20)
 
-	append(&gState.trees, regularTree)
 
 	for !rl.WindowShouldClose() {
 
@@ -103,7 +115,7 @@ update :: proc(state: ^GameState, delta: f32) {
 
 	if player.state == PlayerState.INTERACTION {
 		for &tree in state.trees {
-			if rl.CheckCollisionRecs(player.interactionRect, tree.area) {
+			if !tree->isDead() && rl.CheckCollisionRecs(player.interactionRect, tree.area) {
 				tree->onInteractable(&player)
 			}
 		}
@@ -117,6 +129,9 @@ draw :: proc(state: ^GameState) {
 	player->playerDraw()
 
 	for &tree in trees {
-		tree->draw()
+		if !tree->isDead() {
+
+			tree->draw()
+		}
 	}
 }

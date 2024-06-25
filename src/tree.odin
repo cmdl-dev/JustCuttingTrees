@@ -37,6 +37,7 @@ Tree :: struct {
 	sprite:         Sprite,
 	draw:           proc(tree: ^Tree),
 	onInteractable: proc(tree: ^Tree, actor: ^Player),
+	isDead:         proc(tree: ^Tree) -> bool,
 }
 
 
@@ -56,9 +57,13 @@ createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: shared.I
 		draw = drawTree,
 		area = area2D,
 		onInteractable = onInteractable,
+		isDead = isTreeDead,
 	}
 }
 
+isTreeDead :: proc(tree: ^Tree) -> bool {
+	return tree.health <= 0
+}
 onInteractable :: proc(tree: ^Tree, player: ^Player) {
 	success, reward := tree->onCut()
 	if (success) {
@@ -80,7 +85,7 @@ RegularTree :: struct {
 
 
 createRegularTree :: proc(initialPosition: shared.IVector2) -> RegularTree {
-	fileName := cstring("trees_trans.png")
+	fileName := cstring("assets/trees_trans.png")
 	treeHealth := 10
 
 	tree := createTree(fileName, treeHealth, initialPosition)

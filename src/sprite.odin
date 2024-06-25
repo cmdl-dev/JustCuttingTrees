@@ -113,7 +113,7 @@ Sprite :: struct {
 }
 
 
-createSprite :: proc(fileName: cstring, initialPosition: shared.IVector2) -> Sprite {
+createStaticSprite :: proc(fileName: cstring, initialPosition: shared.IVector2) -> Sprite {
 	texture := loadTexture(fileName)
 
 	return {
@@ -128,6 +128,12 @@ createSprite :: proc(fileName: cstring, initialPosition: shared.IVector2) -> Spr
 		setTileSize = setTileSize,
 	}
 }
+
+createSprite :: proc {
+	createStaticSprite,
+	createAnimatedSprite,
+}
+
 setTileSize :: proc(sprite: ^Sprite, tileSize: i32) {
 	sprite.rect.tileSize = tileSize
 }
