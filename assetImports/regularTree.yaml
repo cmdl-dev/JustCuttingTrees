@@ -1,0 +1,6 @@
+file_location: assets/trees_trans.png
+width: 128
+height: 128
+
+tile_size: 8
+rect_coords: 0,0,3,7

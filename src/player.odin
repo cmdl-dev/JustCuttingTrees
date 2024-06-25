@@ -11,7 +11,6 @@ Moveable :: struct {
 }
 
 createMoveable :: proc() -> Moveable {
-
 	return {move = moveActor, velocity = 200}
 }
 moveActor :: proc(actor: ^Actor, deltaPosition: shared.IVector2) {

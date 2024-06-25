@@ -1,5 +1,6 @@
 package main
 
+import "constants"
 import "core:fmt"
 import "shared"
 import rl "vendor:raylib"
@@ -95,13 +96,20 @@ getSpriteHeight :: proc(sprite: ^AnimatedSprite) -> i32 {
 	return sprite.animationOffsets.y
 }
 
+SpriteRect :: struct {
+	using rect: rl.Rectangle,
+	tileSize:   i32,
+}
 Sprite :: struct {
-	texture:   rl.Texture2D,
-	position:  shared.IVector2,
-	draw:      proc(sprite: ^Sprite),
-	setScale:  proc(sprite: ^Sprite, scale: i32),
-	getHeight: proc(sprite: ^Sprite) -> i32,
-	getWidth:  proc(sprite: ^Sprite) -> i32,
+	texture:     rl.Texture2D,
+	position:    shared.IVector2,
+	rect:        SpriteRect,
+	draw:        proc(sprite: ^Sprite),
+	setScale:    proc(sprite: ^Sprite, scale: i32),
+	getHeight:   proc(sprite: ^Sprite) -> i32,
+	getWidth:    proc(sprite: ^Sprite) -> i32,
+	setRect:     proc(sprite: ^Sprite, xPos, yPos, hTiles, vTiles: i32),
+	setTileSize: proc(sprite: ^Sprite, tileSize: i32),
 }
 
 
@@ -112,18 +120,43 @@ createSprite :: proc(fileName: cstring, initialPosition: shared.IVector2) -> Spr
 		texture = texture,
 		position = initialPosition,
 		draw = drawSprite,
+		rect = {tileSize = 1},
 		setScale = setScale,
 		getHeight = getHeight,
 		getWidth = getWidth,
+		setRect = setRect,
+		setTileSize = setTileSize,
+	}
+}
+setTileSize :: proc(sprite: ^Sprite, tileSize: i32) {
+	sprite.rect.tileSize = tileSize
+}
+// All these numbers are multiplied by the tile size
+setRect :: proc(sprite: ^Sprite, xPos, yPos, hTiles, vTiles: i32) {
+	using sprite
+
+	sprite.rect.rect = rl.Rectangle {
+		f32(xPos * rect.tileSize),
+		f32(yPos * rect.tileSize),
+		f32(hTiles * rect.tileSize),
+		f32(vTiles * rect.tileSize),
 	}
 }
 getHeight :: proc(sprite: ^Sprite) -> i32 {
 	using sprite
-	return texture.height
+	if rect.height == 0 {
+		return texture.height
+	} else {
+		return i32(rect.height)
+	}
 }
 getWidth :: proc(sprite: ^Sprite) -> i32 {
 	using sprite
-	return texture.width
+	if rect.height == 0 {
+		return texture.width
+	} else {
+		return i32(rect.width)
+	}
 }
 
 
@@ -135,8 +168,14 @@ loadTexture :: proc(fileName: cstring) -> rl.Texture2D {
 }
 
 setScale :: proc(sprite: ^Sprite, scale: i32) {
-	sprite.texture.height *= scale
-	sprite.texture.width *= scale
+	using sprite
+	texture.height *= scale
+	texture.width *= scale
+	// TODO: TEST
+	if rect.height != 0 {
+		rect.height *= f32(scale * rect.tileSize)
+		rect.width *= f32(scale * rect.tileSize)
+	}
 }
 
 addAnimation :: proc(anim: ^Animatable, name: string, maxFrames: int, coords: FrameCoords) {
@@ -245,5 +284,21 @@ drawAnimatedSprite :: proc(aSprite: ^AnimatedSprite) {
 }
 drawSprite :: proc(sprite: ^Sprite) {
 	using sprite
-	rl.DrawTexture(texture, i32(position.x), i32(position.y), rl.WHITE)
+	if sprite.rect.height == 0 {
+		rl.DrawTexture(texture, i32(position.x), i32(position.y), rl.WHITE)
+
+	} else {
+		// DEBUG
+		// rl.DrawTexture(texture, i32(position.x), i32(position.y), rl.WHITE)
+
+		// rl.DrawRectangleLines(
+		// 	i32(position.x),
+		// 	i32(position.y),
+		// 	i32(sprite.rect.width),
+		// 	i32(sprite.rect.height),
+		// 	rl.RED,
+		// )
+		rl.DrawTextureRec(texture, sprite.rect, shared.toRlVector(position), rl.WHITE)
+	}
+
 }

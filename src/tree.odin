@@ -6,7 +6,7 @@ import rl "vendor:raylib"
 
 Cuttable :: struct {
 	health: int,
-	onCut:  proc(tree: ^Tree) -> [dynamic]TreeReward,
+	onCut:  proc(tree: ^Tree) -> (success: bool, reward: [dynamic]TreeReward),
 }
 createCuttable :: proc(health: int) -> Cuttable {
 	return {health = health}
@@ -23,9 +23,15 @@ createLogReward :: proc(type: LogType) -> TreeReward {
 	return {type}
 }
 
+TreeState :: enum {
+	GROWN,
+	CUT,
+	GROWING,
+}
 Tree :: struct {
 	using actor:    Actor,
 	using cuttable: Cuttable,
+	state:          TreeState,
 	area:           Area2D,
 	reward:         [dynamic]TreeReward,
 	sprite:         Sprite,
@@ -54,9 +60,11 @@ createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: shared.I
 }
 
 onInteractable :: proc(tree: ^Tree, player: ^Player) {
-	reward := tree->onCut()
-	player->addReward(reward)
-	fmt.println("Reward type", reward)
+	success, reward := tree->onCut()
+	if (success) {
+		player->addReward(reward)
+		fmt.println("Reward type", reward)
+	}
 
 }
 
@@ -71,19 +79,37 @@ RegularTree :: struct {
 }
 
 
-createRegularTree :: proc(
-	fileName: cstring,
-	treeHealth: int,
-	initialPosition: shared.IVector2,
-) -> RegularTree {
+createRegularTree :: proc(initialPosition: shared.IVector2) -> RegularTree {
+	fileName := cstring("trees_trans.png")
+	treeHealth := 10
+
 	tree := createTree(fileName, treeHealth, initialPosition)
+	tree.sprite->setRect(0, 0, 3, 7)
+	tree.sprite->setTileSize(8)
+	tree.sprite->setScale(2)
+
 	reward := createLogReward(LogType.REGULAR)
 	append(&tree.reward, reward)
 	tree.cuttable.onCut = onCutRegularTree
 	return {tree = tree}
 }
 
-onCutRegularTree :: proc(tree: ^Tree) -> [dynamic]TreeReward {
+onCutRegularTree :: proc(tree: ^Tree) -> (success: bool, reward: [dynamic]TreeReward) {
 
-	return tree.reward
+	success = false
+	reward = {}
+
+	// it shouldn't be on the screen, but still checking for it 
+	if tree.state != TreeState.GROWN {
+		return
+	}
+
+	tree.health -= 1
+	fmt.println("Remaining health", tree.health)
+	if (tree.health <= 0) {
+		tree.state = TreeState.CUT
+		reward = tree.reward
+		success = true
+	}
+	return
 }

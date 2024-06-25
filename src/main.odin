@@ -45,7 +45,8 @@ main :: proc() {
 		update = update,
 		input  = input,
 	}
-	regularTree := createRegularTree("assets/RegularTree.png", 10, {150, 150})
+	regularTree := createRegularTree({150, 150})
+
 	append(&gState.trees, regularTree)
 
 	for !rl.WindowShouldClose() {
