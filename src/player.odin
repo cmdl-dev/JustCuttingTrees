@@ -17,6 +17,7 @@ Player :: struct {
 	interactionRect: Area2D,
 	state:           PlayerState,
 	treeStorage:     [dynamic]TreeReward,
+	storeLogs:       proc(player: ^Player, storage: ^StorageBox),
 	addReward:       proc(player: ^Player, reward: [dynamic]TreeReward),
 	playerInput:     proc(player: ^Player, userInput: UserInput),
 	playerUpdate:    proc(player: ^Player, delta: f32),
@@ -43,6 +44,7 @@ createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 		actor = actor,
 		moveable = moveable,
 		sprite = sprite,
+		storeLogs = storeLogs,
 		interactionRect = interactionRect,
 		addReward = playerAddReward,
 		playerDraw = playerDraw,
@@ -76,11 +78,20 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 	interactionRect->update(position)
 }
 
+getPlayerTotalScore :: proc(player: ^Player) -> (accumulator: i32) {
+	using player
+
+	for reward in treeStorage {
+		accumulator += reward.info.value
+	}
+	return
+}
+
 drawScore :: proc(player: ^Player) {
 	using player
 
 	stringBuffer := strings.Builder{}
-	text := fmt.sbprintf(&stringBuffer, "%d", len(player.treeStorage))
+	text := fmt.sbprintf(&stringBuffer, "%d", getPlayerTotalScore(player))
 	cText := strings.to_cstring(&stringBuffer)
 
 	textWidth := rl.MeasureText(cText, 32)
@@ -100,4 +111,16 @@ playerDraw :: proc(player: ^Player) {
 	sprite->draw()
 	interactionRect->draw()
 	drawScore(player)
+}
+
+storeLogs :: proc(player: ^Player, box: ^StorageBox) {
+	using player
+	// 
+	// storage:        map[LogType]i32,
+	fmt.println("Adding logs into storage")
+	for log in treeStorage {
+		box.storage[log.logType] += 1
+	}
+
+	clear(&player.treeStorage)
 }

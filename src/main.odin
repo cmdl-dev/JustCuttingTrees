@@ -3,6 +3,7 @@ package main
 
 import "constants"
 import "core:fmt"
+import "core:strings"
 import "shared"
 
 import rnd "core:math/rand"
@@ -16,14 +17,37 @@ Window :: struct {
 	title:  cstring,
 }
 
-GameState :: struct {
-	player: Player,
-	trees:  [dynamic]Tree,
-	draw:   proc(state: ^GameState),
-	input:  proc(state: ^GameState),
-	update: proc(state: ^GameState, delta: f32),
+
+StorageBox :: struct {
+	using rect:     rl.Rectangle,
+	// Gets the count of each log type
+	storage:        map[LogType]i32,
+	drawStorageBox: proc(storageBox: ^StorageBox),
 }
 
+createStorageBox :: proc(location: shared.IVector2) -> StorageBox {
+
+	return {
+		x = location.x,
+		y = location.y,
+		width = 50,
+		height = 30,
+		drawStorageBox = drawStorageBox,
+	}
+}
+drawStorageBox :: proc(storageBox: ^StorageBox) {
+	using storageBox
+
+	rl.DrawRectangle(i32(x), i32(y), i32(width), i32(height), rl.ORANGE)
+}
+GameState :: struct {
+	player:     Player,
+	storageBox: StorageBox,
+	trees:      [dynamic]Tree,
+	draw:       proc(state: ^GameState),
+	input:      proc(state: ^GameState),
+	update:     proc(state: ^GameState, delta: f32),
+}
 
 UserInput :: struct {
 	direction:      shared.IVector2,
@@ -40,6 +64,27 @@ createManyTrees :: proc(count: i32) -> (trees: [dynamic]Tree) {
 	}
 	return trees
 }
+getTotalGameScore :: proc(gameState: ^GameState) -> (accumulator: i32) {
+	using gameState
+	for k, v in storageBox.storage {
+		accumulator += LogToValueMap[k].value * v
+	}
+
+	return
+}
+
+drawTotalScore :: proc(gameState: ^GameState, position: shared.IVector2) {
+	using gameState
+
+
+	stringBuffer := strings.Builder{}
+	text := fmt.sbprintf(&stringBuffer, "%d", getTotalGameScore(gameState))
+	cText := strings.to_cstring(&stringBuffer)
+
+	textWidth := rl.MeasureText(cText, 32)
+	rl.DrawText(cText, i32(position.x), i32(position.y), 32, rl.BLACK)
+}
+
 
 main :: proc() {
 	window := Window {
@@ -58,6 +103,7 @@ main :: proc() {
 		update = update,
 		input  = input,
 	}
+	gState.storageBox = createStorageBox({1000, 50})
 	gState.trees = createManyTrees(20)
 
 
@@ -119,19 +165,26 @@ update :: proc(state: ^GameState, delta: f32) {
 				tree->onInteractable(&player)
 			}
 		}
+		if rl.CheckCollisionRecs(storageBox, player.interactionRect) {
+			player->storeLogs(&storageBox)
+		}
 	}
 
 
 }
+
 draw :: proc(state: ^GameState) {
 	using state
+	storageBox->drawStorageBox()
 
 	player->playerDraw()
 
 	for &tree in trees {
 		if !tree->isDead() {
-
 			tree->draw()
 		}
 	}
+
+	drawTotalScore(state, {30, 30})
+
 }

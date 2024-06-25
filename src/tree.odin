@@ -14,13 +14,24 @@ createCuttable :: proc(health: int) -> Cuttable {
 
 LogType :: enum {
 	REGULAR,
+	WILLOW,
+}
+LogInfo :: struct {
+	value:  i32,
+	weight: f32,
+}
+
+LogToValueMap: map[LogType]LogInfo = {
+	LogType.REGULAR = {1, 10.0},
+	LogType.WILLOW  = {3, 14.0},
 }
 TreeReward :: struct {
 	logType: LogType,
+	info:    LogInfo,
 }
 createLogReward :: proc(type: LogType) -> TreeReward {
 
-	return {type}
+	return {type, LogToValueMap[type]}
 }
 
 TreeState :: enum {
