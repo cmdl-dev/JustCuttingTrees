@@ -97,7 +97,7 @@ RegularTree :: struct {
 
 createRegularTree :: proc(initialPosition: shared.IVector2) -> RegularTree {
 	fileName := cstring("assets/trees_trans.png")
-	treeHealth := 10
+	treeHealth := 2
 
 	tree := createTree(fileName, treeHealth, initialPosition)
 	tree.sprite->setRect(0, 0, 3, 7)

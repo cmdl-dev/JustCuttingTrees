@@ -44,6 +44,7 @@ GameState :: struct {
 	player:     Player,
 	storageBox: StorageBox,
 	trees:      [dynamic]Tree,
+	camera:     rl.Camera2D,
 	draw:       proc(state: ^GameState),
 	input:      proc(state: ^GameState),
 	update:     proc(state: ^GameState, delta: f32),
@@ -52,6 +53,7 @@ GameState :: struct {
 UserInput :: struct {
 	direction:      shared.IVector2,
 	justInteracted: bool,
+	tabMenuPressed: bool,
 }
 
 createManyTrees :: proc(count: i32) -> (trees: [dynamic]Tree) {
@@ -93,12 +95,18 @@ main :: proc() {
 		title  = "Just Cutting Trees",
 		fps    = constants.TARGET_FPS,
 	}
+	camera := rl.Camera2D {
+		offset = {f32(constants.SCREEN_WIDTH / 2), f32(constants.SCREEN_HEIGHT / 2)}, // Camera offset (displacement from target)
+		target = {0, 0}, // Camera target (rotation and zoom origin)
+		zoom   = 1.3, // Camera zoom (scaling), should be 1.0f by default
+	}
 	rl.InitWindow(window.width, window.height, window.title)
 	rl.SetTraceLogLevel(rl.TraceLogLevel.ERROR)
 	rl.SetTargetFPS(window.fps)
 
 	gState := GameState {
 		player = createPlayer({0, 0}),
+		camera = camera,
 		draw   = draw,
 		update = update,
 		input  = input,
@@ -115,34 +123,38 @@ main :: proc() {
 		// Handle update
 		gState->update(delta)
 		rl.BeginDrawing()
+		rl.BeginMode2D(gState.camera)
 		rl.ClearBackground(rl.WHITE)
 		// Handle draw
 		gState->draw()
+		rl.EndMode2D()
 		rl.EndDrawing()
 	}
 }
 
-getUserInput :: proc() -> UserInput {
-	direction := shared.IVector2{}
-	justInteracted := false
+getUserInput :: proc() -> (userInput: UserInput) {
+
 
 	if (rl.IsKeyDown(rl.KeyboardKey.PERIOD)) {
-		direction.y += -1
+		userInput.direction.y += -1
 	}
 	if (rl.IsKeyDown(rl.KeyboardKey.O)) {
-		direction.x += -1
+		userInput.direction.x += -1
 	}
 	if (rl.IsKeyDown(rl.KeyboardKey.E)) {
-		direction.y += 1
+		userInput.direction.y += 1
 	}
 	if (rl.IsKeyDown(rl.KeyboardKey.U)) {
-		direction.x += 1
+		userInput.direction.x += 1
 	}
 	if (rl.IsKeyPressed(rl.KeyboardKey.P)) {
-		justInteracted = true
+		userInput.justInteracted = true
+	}
+	if (rl.IsKeyPressed(rl.KeyboardKey.TAB)) {
+		userInput.tabMenuPressed = true
 	}
 
-	return {direction, justInteracted}
+	return
 }
 
 input :: proc(state: ^GameState) {
@@ -171,6 +183,7 @@ update :: proc(state: ^GameState, delta: f32) {
 	}
 
 
+	state.camera.target = shared.toRlVector(player.position)
 }
 
 draw :: proc(state: ^GameState) {
@@ -185,6 +198,7 @@ draw :: proc(state: ^GameState) {
 		}
 	}
 
-	drawTotalScore(state, {30, 30})
+
+	drawTotalScore(state, shared.RLVectorToIVector(rl.GetScreenToWorld2D({30, 30}, state.camera)))
 
 }

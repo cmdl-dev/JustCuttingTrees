@@ -5,6 +5,28 @@ import "core:strings"
 import "shared"
 import rl "vendor:raylib"
 
+PlayerInventory :: struct {
+	using rect: rl.Rectangle,
+	show:       bool,
+	draw:       proc(inv: ^PlayerInventory),
+	move:       proc(inv: ^PlayerInventory, position: shared.IVector2),
+}
+createPlayerInventory :: proc(rect: rl.Rectangle) -> PlayerInventory {
+	return {rect = rect, draw = drawInventory, move = moveInventory}
+}
+moveInventory :: proc(inv: ^PlayerInventory, position: shared.IVector2) {
+	using inv
+	x = position.x
+	y = position.y
+}
+drawInventory :: proc(inv: ^PlayerInventory) {
+	using inv
+	if show {
+		rl.DrawRectangle(i32(x), i32(y), i32(width), i32(height), rl.ORANGE)
+	}
+}
+
+
 PlayerState :: enum {
 	NONE,
 	INTERACTION,
@@ -15,6 +37,7 @@ Player :: struct {
 	using actor:     Actor,
 	sprite:          Sprite,
 	interactionRect: Area2D,
+	invetoryMenu:    PlayerInventory,
 	state:           PlayerState,
 	treeStorage:     [dynamic]TreeReward,
 	storeLogs:       proc(player: ^Player, storage: ^StorageBox),
@@ -30,6 +53,7 @@ createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 	fileName := cstring("assets/Phoenix.png")
 	actor := createActor(initialPosition)
 	moveable := createMoveable(200)
+	inventory := createPlayerInventory({initialPosition.x, initialPosition.y, 200, 200})
 
 	sprite := createSprite(fileName, {50, 50})
 	sprite->setScale(2)
@@ -46,6 +70,7 @@ createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 		sprite = sprite,
 		storeLogs = storeLogs,
 		interactionRect = interactionRect,
+		invetoryMenu = inventory,
 		addReward = playerAddReward,
 		playerDraw = playerDraw,
 		playerUpdate = playerUpdate,
@@ -63,6 +88,10 @@ playerInput :: proc(player: ^Player, userInput: UserInput) {
 	} else {
 		player.state = PlayerState.NONE
 	}
+
+	if userInput.tabMenuPressed {
+		player.invetoryMenu.show = !player.invetoryMenu.show
+	}
 }
 
 playerUpdate :: proc(player: ^Player, delta: f32) {
@@ -76,6 +105,8 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 	player.moveable.move(player, calculatedDelta)
 	sprite.position = position
 	interactionRect->update(position)
+
+	invetoryMenu.move(&invetoryMenu, position)
 }
 
 getPlayerTotalScore :: proc(player: ^Player) -> (accumulator: i32) {
@@ -113,6 +144,7 @@ playerDraw :: proc(player: ^Player) {
 	sprite->draw()
 	interactionRect->draw()
 	drawScore(player)
+	player.invetoryMenu->draw()
 }
 
 storeLogs :: proc(player: ^Player, box: ^StorageBox) {

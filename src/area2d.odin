@@ -9,7 +9,6 @@ AreaType :: enum {
 	COLLISION,
 	INTERACTION,
 }
-
 Area2D :: struct {
 	using rect: rl.Rectangle,
 	type:       AreaType,
