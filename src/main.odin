@@ -10,6 +10,14 @@ import rnd "core:math/rand"
 import rl "vendor:raylib"
 
 
+Menu :: struct {
+	using rect: rl.Rectangle,
+	show:       bool,
+	title:      cstring,
+	drawMenu:   proc(menu: ^Menu),
+	move:       proc(menu: ^Menu, position: shared.IVector2),
+}
+
 Window :: struct {
 	fps:    i32,
 	width:  i32,
@@ -184,19 +192,20 @@ update :: proc(state: ^GameState, delta: f32) {
 
 
 	state.camera.target = shared.toRlVector(player.position)
+
+	player.inventory->move(shared.RLVectorToIVector(rl.GetScreenToWorld2D({0, 100}, state.camera)))
 }
 
 draw :: proc(state: ^GameState) {
 	using state
-	storageBox->drawStorageBox()
-
-	player->playerDraw()
 
 	for &tree in trees {
 		if !tree->isDead() {
 			tree->draw()
 		}
 	}
+	storageBox->drawStorageBox()
+	player->playerDraw()
 
 
 	drawTotalScore(state, shared.RLVectorToIVector(rl.GetScreenToWorld2D({30, 30}, state.camera)))

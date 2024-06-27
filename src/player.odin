@@ -5,25 +5,58 @@ import "core:strings"
 import "shared"
 import rl "vendor:raylib"
 
+
 PlayerInventory :: struct {
-	using rect: rl.Rectangle,
-	show:       bool,
-	draw:       proc(inv: ^PlayerInventory),
-	move:       proc(inv: ^PlayerInventory, position: shared.IVector2),
+	using menu:    Menu,
+	storage:       [dynamic]TreeReward,
+	drawInventory: proc(pInv: ^PlayerInventory),
 }
+
 createPlayerInventory :: proc(rect: rl.Rectangle) -> PlayerInventory {
-	return {rect = rect, draw = drawInventory, move = moveInventory}
+	return {
+		rect = rect,
+		title = "Inventory",
+		drawMenu = drawMenu,
+		drawInventory = drawContents,
+		move = moveInventory,
+	}
 }
-moveInventory :: proc(inv: ^PlayerInventory, position: shared.IVector2) {
+moveInventory :: proc(inv: ^Menu, position: shared.IVector2) {
 	using inv
 	x = position.x
 	y = position.y
 }
-drawInventory :: proc(inv: ^PlayerInventory) {
-	using inv
-	if show {
-		rl.DrawRectangle(i32(x), i32(y), i32(width), i32(height), rl.ORANGE)
+drawContents :: proc(pInv: ^PlayerInventory) {
+	using pInv
+	if !show {
+		return
 	}
+
+	pInv->drawMenu()
+
+	padding := i32(10)
+	centerPosX := x + (width / 2)
+	bottomPosY := y + height
+
+	b := strings.builder_make()
+	defer strings.builder_destroy(&b)
+
+	text := fmt.sbprintf(&b, "Score: %d", getPlayerTotalScore(pInv))
+	cText := strings.to_cstring(&b)
+
+	textWidth := rl.MeasureText(cText, 12)
+
+	rl.DrawText(cText, i32(centerPosX) - (textWidth / 2), i32(bottomPosY) - 12, 12, rl.BLACK)
+}
+
+drawMenu :: proc(inv: ^Menu) {
+	using inv
+
+	textWidth := rl.MeasureText(title, 24)
+	centerPosX := x + (width / 2)
+
+	rl.DrawRectangle(i32(x), i32(y), i32(width), i32(height), rl.ORANGE) // rl.DrawRectangle(i32(x - width), i32(y - height), i32(width), i32(height), rl.ORANGE)
+	rl.DrawText(title, i32(centerPosX) - (textWidth / 2), i32(y + 5), 24, rl.BLACK)
 }
 
 
@@ -37,9 +70,8 @@ Player :: struct {
 	using actor:     Actor,
 	sprite:          Sprite,
 	interactionRect: Area2D,
-	invetoryMenu:    PlayerInventory,
+	inventory:       PlayerInventory,
 	state:           PlayerState,
-	treeStorage:     [dynamic]TreeReward,
 	storeLogs:       proc(player: ^Player, storage: ^StorageBox),
 	addReward:       proc(player: ^Player, reward: [dynamic]TreeReward),
 	playerInput:     proc(player: ^Player, userInput: UserInput),
@@ -70,7 +102,7 @@ createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 		sprite = sprite,
 		storeLogs = storeLogs,
 		interactionRect = interactionRect,
-		invetoryMenu = inventory,
+		inventory = inventory,
 		addReward = playerAddReward,
 		playerDraw = playerDraw,
 		playerUpdate = playerUpdate,
@@ -78,7 +110,7 @@ createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 	}
 }
 playerAddReward :: proc(player: ^Player, rewards: [dynamic]TreeReward) {
-	append(&player.treeStorage, ..rewards[:])
+	append(&player.inventory.storage, ..rewards[:])
 }
 
 playerInput :: proc(player: ^Player, userInput: UserInput) {
@@ -90,7 +122,7 @@ playerInput :: proc(player: ^Player, userInput: UserInput) {
 	}
 
 	if userInput.tabMenuPressed {
-		player.invetoryMenu.show = !player.invetoryMenu.show
+		player.inventory.show = !player.inventory.show
 	}
 }
 
@@ -106,55 +138,54 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 	sprite.position = position
 	interactionRect->update(position)
 
-	invetoryMenu.move(&invetoryMenu, position)
 }
 
-getPlayerTotalScore :: proc(player: ^Player) -> (accumulator: i32) {
-	using player
+getPlayerTotalScore :: proc(pInv: ^PlayerInventory) -> (accumulator: i32) {
+	using pInv
 
-	for reward in treeStorage {
+	for reward in storage {
 		accumulator += reward.info.value
 	}
 	return
 }
 
-drawScore :: proc(player: ^Player) {
-	using player
+// drawScore :: proc(player: ^Player) {
+// 	using player
 
-	b := strings.builder_make()
-	defer strings.builder_destroy(&b)
+// 	b := strings.builder_make()
+// 	defer strings.builder_destroy(&b)
 
-	text := fmt.sbprintf(&b, "%d", getPlayerTotalScore(player))
-	cText := strings.to_cstring(&b)
+// 	text := fmt.sbprintf(&b, "%d", getPlayerTotalScore(player))
+// 	cText := strings.to_cstring(&b)
 
-	textWidth := rl.MeasureText(cText, 32)
-	padding := i32(10)
-	rl.DrawText(
-		cText,
-		i32(position.x) - textWidth / 2 + (player.sprite->getWidth() / 2),
-		i32(position.y) - textWidth - padding,
-		32,
-		rl.BLACK,
-	)
+// 	textWidth := rl.MeasureText(cText, 32)
+// 	padding := i32(10)
 
-}
+// 	rl.DrawText(
+// 		cText,
+// 		i32(position.x) - textWidth / 2 + (player.sprite->getWidth() / 2),
+// 		i32(position.y) - textWidth - padding,
+// 		32,
+// 		rl.BLACK,
+// 	)
+
+// }
 playerDraw :: proc(player: ^Player) {
 	using player
 
 	sprite->draw()
 	interactionRect->draw()
-	drawScore(player)
-	player.invetoryMenu->draw()
+	// drawScore(player)
+	player.inventory->drawInventory()
 }
 
 storeLogs :: proc(player: ^Player, box: ^StorageBox) {
 	using player
-	// 
-	// storage:        map[LogType]i32,
+
 	fmt.println("Adding logs into storage")
-	for log in treeStorage {
+	for log in inventory.storage {
 		box.storage[log.logType] += 1
 	}
 
-	clear(&player.treeStorage)
+	clear(&player.inventory.storage)
 }
