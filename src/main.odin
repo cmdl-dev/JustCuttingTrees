@@ -60,6 +60,7 @@ GameState :: struct {
 
 UserInput :: struct {
 	direction:      shared.IVector2,
+	justSwung:      bool,
 	justInteracted: bool,
 	tabMenuPressed: bool,
 }
@@ -161,6 +162,9 @@ getUserInput :: proc() -> (userInput: UserInput) {
 	if (rl.IsKeyPressed(rl.KeyboardKey.TAB)) {
 		userInput.tabMenuPressed = true
 	}
+	if (rl.IsMouseButtonPressed(rl.MouseButton.LEFT)) {
+		userInput.justSwung = true
+	}
 
 	return
 }
@@ -179,16 +183,17 @@ update :: proc(state: ^GameState, delta: f32) {
 
 	player->playerUpdate(delta)
 
-	if player.state == PlayerState.INTERACTION {
-		for &tree in state.trees {
-			if !tree->isDead() && rl.CheckCollisionRecs(player.interactionRect, tree.area) {
-				tree->onInteractable(&player)
-			}
-		}
-		if rl.CheckCollisionRecs(storageBox, player.interactionRect) {
-			player->storeLogs(&storageBox)
-		}
-	}
+	// TODO: Should only interact if the axe is in its activatebl frames
+	// if player.state == PlayerState.INTERACTION {
+	// 	for &tree in state.trees {
+	// 		if !tree->isDead() && rl.CheckCollisionRecs(player.interactionRect, tree.area) {
+	// 			tree->onInteractable(&player)
+	// 		}
+	// 	}
+	// 	if rl.CheckCollisionRecs(storageBox, player.interactionRect) {
+	// 		player->storeLogs(&storageBox)
+	// 	}
+	// }
 
 
 	state.camera.target = shared.toRlVector(player.position)

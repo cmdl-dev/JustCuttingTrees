@@ -61,14 +61,17 @@ drawMenu :: proc(inv: ^Menu) {
 
 
 PlayerState :: enum {
-	NONE,
 	INTERACTION,
+	IDLE,
+	WALK,
+	SWING,
 }
 
 Player :: struct {
 	using moveable:  Moveable,
 	using actor:     Actor,
-	sprite:          Sprite,
+	isSwinging:      bool,
+	sprite:          AnimatedSprite,
 	interactionRect: Area2D,
 	inventory:       PlayerInventory,
 	state:           PlayerState,
@@ -82,18 +85,25 @@ Player :: struct {
 
 createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 
-	fileName := cstring("assets/Phoenix.png")
+	fileName := cstring("assets/Factions/Knights/Troops/Pawn/Blue/Pawn_Blue.png")
 	actor := createActor(initialPosition)
 	moveable := createMoveable(200)
 	inventory := createPlayerInventory({initialPosition.x, initialPosition.y, 200, 200})
 
-	sprite := createSprite(fileName, {50, 50})
-	sprite->setScale(2)
+	sprite := createAnimatedSprite(fileName, {50, 50}, 6, {6, 6})
+
+	sprite->addAnimation("idle", 6, {0, 0})
+	sprite->addAnimation("walk", 6, {0, 1})
+	sprite->addAnimation("swing", 6, {0, 3})
+
+	sprite->playAnimation("walk")
 
 
 	interactionRect := createArea2D(
 		AreaType.INTERACTION,
-		{initialPosition.x, initialPosition.y, f32(sprite->getWidth()), f32(sprite->getHeight())},
+		{initialPosition.x, initialPosition.y, 32, 32},
+		{sprite->getSpriteWidth(), sprite->getSpriteHeight()},
+		true,
 	)
 
 	return Player {
@@ -115,28 +125,54 @@ playerAddReward :: proc(player: ^Player, rewards: [dynamic]TreeReward) {
 
 playerInput :: proc(player: ^Player, userInput: UserInput) {
 	player.direction = userInput.direction
-	if (userInput.justInteracted) {
-		player.state = PlayerState.INTERACTION
-	} else {
-		player.state = PlayerState.NONE
+
+	if !player.isSwinging {
+
+		if userInput.justInteracted {
+			player.state = PlayerState.INTERACTION
+		} else if player.direction != {0, 0} {
+			player.state = PlayerState.WALK
+		} else if userInput.justSwung {
+			player.state = PlayerState.SWING
+		} else {
+			player.state = PlayerState.IDLE
+		}
 	}
+
 
 	if userInput.tabMenuPressed {
 		player.inventory.show = !player.inventory.show
 	}
+
 }
 
 playerUpdate :: proc(player: ^Player, delta: f32) {
 	using player
+	switch player.state {
+	case .INTERACTION:
+		player.sprite->playAnimation("idle")
+	case .IDLE:
+		player.sprite->playAnimation("idle")
+	case .WALK:
+		player.sprite->playAnimation("walk")
+	case .SWING:
+		player.sprite->playAnimation("swing")
+		isSwinging = true
+	}
 
 	calculatedDelta := shared.IVector2 {
 		delta * f32(velocity) * direction.x,
 		delta * f32(velocity) * direction.y,
 	}
 
+
 	player.moveable.move(player, calculatedDelta)
 	sprite.position = position
 	interactionRect->update(position)
+
+	if !player.sprite.isAnimationPlaying && isSwinging {
+		isSwinging = false
+	}
 
 }
 
@@ -149,31 +185,10 @@ getPlayerTotalScore :: proc(pInv: ^PlayerInventory) -> (accumulator: i32) {
 	return
 }
 
-// drawScore :: proc(player: ^Player) {
-// 	using player
-
-// 	b := strings.builder_make()
-// 	defer strings.builder_destroy(&b)
-
-// 	text := fmt.sbprintf(&b, "%d", getPlayerTotalScore(player))
-// 	cText := strings.to_cstring(&b)
-
-// 	textWidth := rl.MeasureText(cText, 32)
-// 	padding := i32(10)
-
-// 	rl.DrawText(
-// 		cText,
-// 		i32(position.x) - textWidth / 2 + (player.sprite->getWidth() / 2),
-// 		i32(position.y) - textWidth - padding,
-// 		32,
-// 		rl.BLACK,
-// 	)
-
-// }
 playerDraw :: proc(player: ^Player) {
 	using player
 
-	sprite->draw()
+	sprite->drawAnimated()
 	interactionRect->draw()
 	// drawScore(player)
 	player.inventory->drawInventory()

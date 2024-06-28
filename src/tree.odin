@@ -59,6 +59,7 @@ createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: shared.I
 	area2D := createArea2D(
 		AreaType.INTERACTION,
 		rl.Rectangle{initialPosition.x, initialPosition.y, 32, 32},
+		{sprite->getWidth(), sprite->getHeight()},
 	)
 
 	return {

@@ -9,15 +9,10 @@ Facing :: enum {
 	WEST,
 }
 
-MovementState :: enum {
-	IDLE,
-	WALKING,
-}
 
 Actor :: struct {
-	position:      shared.IVector2,
-	facing:        Facing,
-	movementState: MovementState,
+	position: shared.IVector2,
+	facing:   Facing,
 }
 
 createActor :: proc(initialPosition: shared.IVector2) -> Actor {

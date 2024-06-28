@@ -4,6 +4,7 @@ import "constants"
 import "core:fmt"
 import "shared"
 import rl "vendor:raylib"
+// TODO: Refactor too confusing something that is static and animated sprite
 
 FrameCoords :: struct {
 	x, y: i32,
@@ -212,7 +213,7 @@ setAnimatedSpriteScale :: proc(aSprite: ^AnimatedSprite, scale: i32) {
 resetAnimations :: proc(anim: ^Animatable) {
 	using anim
 	currentFrame = 0
-	isAnimationPlaying = false
+	frameCounter = 0
 	clear(&animationPath)
 }
 
@@ -225,7 +226,7 @@ updateAnimationFrame :: proc(anim: ^Animatable) {
 		isAnimationPlaying = true
 		currentFrame += 1
 
-		if currentFrame >= currentAnimation.maxFrames - 1 {
+		if currentFrame >= currentAnimation.maxFrames {
 			currentFrame = 0
 			isAnimationPlaying = false
 		}
@@ -236,11 +237,13 @@ updateAnimationFrame :: proc(anim: ^Animatable) {
 
 playAnimation :: proc(anim: ^AnimatedSprite, name: string) {
 	using anim
-	if currentAnimation.name == name {
-		return
-	}
-
 	if animation, ok := animations[name]; ok {
+
+		if currentAnimation.name == name {
+			return
+		}
+
+		isAnimationPlaying = true
 		currentAnimation = animation
 		resetAnimations(anim)
 		createAnimationPath(anim)
@@ -282,10 +285,9 @@ drawAnimatedSprite :: proc(aSprite: ^AnimatedSprite) {
 
 	assert(len(animationPath) != 0, "Animation path is empty")
 
-	animation->updateAnimationFrame()
 	currentAnimationFrame := animationPath[currentFrame]
-
 	rl.DrawTextureRec(texture, currentAnimationFrame, shared.toRlVector(position), rl.WHITE)
+	animation->updateAnimationFrame()
 
 }
 drawSprite :: proc(sprite: ^Sprite) {
