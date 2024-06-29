@@ -11,6 +11,7 @@ AreaType :: enum {
 }
 Area2D :: struct {
 	using rect: rl.Rectangle,
+	parent:     Actor,
 	centered:   bool,
 	type:       AreaType,
 	parentSize: struct {
@@ -21,6 +22,25 @@ Area2D :: struct {
 	update:     proc(area: ^Area2D, position: shared.IVector2),
 }
 
+createArea2DWithOrigin :: proc(
+	parent: Actor,
+	type: AreaType,
+	rect: rl.Rectangle,
+	parentSize: struct {
+		height: i32,
+		width:  i32,
+	},
+	centered: bool = false,
+) -> Area2D {
+	return {
+		type = type,
+		rect = rect,
+		draw = drawAreaRect,
+		parentSize = parentSize,
+		update = updateLocation,
+		centered = centered,
+	}
+}
 
 createArea2D :: proc(type: AreaType, rect: rl.Rectangle, parentSize: struct {
 		height: i32,

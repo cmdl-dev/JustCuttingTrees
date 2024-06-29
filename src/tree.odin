@@ -2,6 +2,7 @@ package main
 
 import "core:fmt"
 import "shared"
+import "sprite"
 import rl "vendor:raylib"
 
 Cuttable :: struct {
@@ -45,29 +46,33 @@ Tree :: struct {
 	state:          TreeState,
 	area:           Area2D,
 	reward:         [dynamic]TreeReward,
-	sprite:         Sprite,
+	sprite:         sprite.AnimatedSprite,
 	draw:           proc(tree: ^Tree),
 	onInteractable: proc(tree: ^Tree, actor: ^Player),
 	isDead:         proc(tree: ^Tree) -> bool,
+	onTreeDeath:    proc(tree: ^Tree),
 }
 
 
 createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: shared.IVector2) -> Tree {
 	actor := createActor(initialPosition)
 	cuttable := createCuttable(treeHealth)
-	sprite := createSprite(fileName, initialPosition)
+	sprite := sprite.createAnimatedSprite(fileName, initialPosition, {hFrames = 4, vFrames = 3})
 	area2D := createArea2D(
 		AreaType.INTERACTION,
 		rl.Rectangle{initialPosition.x, initialPosition.y, 32, 32},
 		{sprite->getWidth(), sprite->getHeight()},
+		true,
 	)
+	// Update the area2d to be centered
+	area2D->update(initialPosition)
 
 	return {
 		actor = actor,
 		cuttable = cuttable,
-		sprite = sprite,
 		draw = drawTree,
 		area = area2D,
+		sprite = sprite,
 		onInteractable = onInteractable,
 		isDead = isTreeDead,
 	}
@@ -78,7 +83,9 @@ isTreeDead :: proc(tree: ^Tree) -> bool {
 }
 onInteractable :: proc(tree: ^Tree, player: ^Player) {
 	success, reward := tree->onCut()
+	tree.sprite->playAnimation("cut")
 	if (success) {
+		tree->onTreeDeath()
 		player->addReward(reward)
 		fmt.println("Reward type", reward)
 	}
@@ -97,18 +104,34 @@ RegularTree :: struct {
 
 
 createRegularTree :: proc(initialPosition: shared.IVector2) -> RegularTree {
-	fileName := cstring("assets/trees_trans.png")
+	fileName := cstring("assets/Resources/Trees/Tree.png")
 	treeHealth := 2
 
 	tree := createTree(fileName, treeHealth, initialPosition)
-	tree.sprite->setRect(0, 0, 3, 7)
-	tree.sprite->setTileSize(8)
-	tree.sprite->setScale(2)
+	tree.sprite->addAnimation(
+		"idle",
+		{maxFrames = 4, frameCoords = {0, 0}, animationSpeed = 6, activeFrame = -1},
+	)
+	tree.sprite->addAnimation(
+		"hit",
+		{maxFrames = 2, frameCoords = {0, 1}, animationSpeed = 6, activeFrame = -1},
+	)
+	tree.sprite->addAnimation(
+		"stump",
+		{maxFrames = 1, frameCoords = {0, 2}, animationSpeed = 6, activeFrame = -1},
+	)
+
+	tree.sprite->playAnimation("idle")
+	tree.onTreeDeath = onRegularTreeDeath
 
 	reward := createLogReward(LogType.REGULAR)
 	append(&tree.reward, reward)
 	tree.cuttable.onCut = onCutRegularTree
 	return {tree = tree}
+}
+
+onRegularTreeDeath :: proc(tree: ^Tree) {
+	fmt.println("I diead")
 }
 
 onCutRegularTree :: proc(tree: ^Tree) -> (success: bool, reward: [dynamic]TreeReward) {
@@ -122,7 +145,6 @@ onCutRegularTree :: proc(tree: ^Tree) -> (success: bool, reward: [dynamic]TreeRe
 	}
 
 	tree.health -= 1
-	fmt.println("Remaining health", tree.health)
 	if (tree.health <= 0) {
 		tree.state = TreeState.CUT
 		reward = tree.reward

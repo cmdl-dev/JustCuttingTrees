@@ -110,6 +110,7 @@ main :: proc() {
 		zoom   = 1.3, // Camera zoom (scaling), should be 1.0f by default
 	}
 	rl.InitWindow(window.width, window.height, window.title)
+
 	rl.SetTraceLogLevel(rl.TraceLogLevel.ERROR)
 	rl.SetTargetFPS(window.fps)
 
@@ -162,7 +163,7 @@ getUserInput :: proc() -> (userInput: UserInput) {
 	if (rl.IsKeyPressed(rl.KeyboardKey.TAB)) {
 		userInput.tabMenuPressed = true
 	}
-	if (rl.IsMouseButtonPressed(rl.MouseButton.LEFT)) {
+	if (rl.IsMouseButtonDown(rl.MouseButton.LEFT)) {
 		userInput.justSwung = true
 	}
 
@@ -184,16 +185,18 @@ update :: proc(state: ^GameState, delta: f32) {
 	player->playerUpdate(delta)
 
 	// TODO: Should only interact if the axe is in its activatebl frames
-	// if player.state == PlayerState.INTERACTION {
-	// 	for &tree in state.trees {
-	// 		if !tree->isDead() && rl.CheckCollisionRecs(player.interactionRect, tree.area) {
-	// 			tree->onInteractable(&player)
-	// 		}
-	// 	}
-	// 	if rl.CheckCollisionRecs(storageBox, player.interactionRect) {
-	// 		player->storeLogs(&storageBox)
-	// 	}
-	// }
+	if playerIsSwing(&player) {
+		for &tree in state.trees {
+			if !tree->isDead() && rl.CheckCollisionRecs(player.interactionRect, tree.area) {
+				tree->onInteractable(&player)
+			}
+		}
+	}
+	if player.state == PlayerState.INTERACTION {
+		if rl.CheckCollisionRecs(storageBox, player.interactionRect) {
+			player->storeLogs(&storageBox)
+		}
+	}
 
 
 	state.camera.target = shared.toRlVector(player.position)

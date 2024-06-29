@@ -1,7 +1,7 @@
 
 
 Create a background of grass or field
-Get a lumberjack for the user
+Get a lumberjack for the user {cm:2024-06-27}
 Customize the inventory menu to show how much of each item we have
 When the tree is cut we should put a treestump
 Add sound of cutting when we interact with it
@@ -13,4 +13,5 @@ create more trees
 stop the camera from moving if the corners reach the outerbounds of the map
 resizeable window
 add background sound
-change inventory from attached to the user into its own menu {start:2024-06-26T12:55:11} {f}
+change inventory from attached to the user into its own menu {start:2024-06-26T12:55:11} {f} {cm:2024-06-27} {duration:1d_07h33m}
+Have an out line for tree he is going to be cutting

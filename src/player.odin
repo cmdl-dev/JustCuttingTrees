@@ -3,7 +3,19 @@ package main
 import "core:fmt"
 import "core:strings"
 import "shared"
+import "sprite"
 import rl "vendor:raylib"
+
+PlayerEventKeys :: enum {
+	NONE,
+	SWING,
+	INTERACT,
+}
+
+PlayerEvent :: struct {
+	current:  PlayerEventKeys,
+	previous: PlayerEventKeys,
+}
 
 
 PlayerInventory :: struct {
@@ -71,8 +83,11 @@ Player :: struct {
 	using moveable:  Moveable,
 	using actor:     Actor,
 	isSwinging:      bool,
-	sprite:          AnimatedSprite,
+	sprite:          sprite.AnimatedSprite,
 	interactionRect: Area2D,
+	swingActive:     bool,
+	swingRect:       Area2D,
+	events:          PlayerEvent,
 	inventory:       PlayerInventory,
 	state:           PlayerState,
 	storeLogs:       proc(player: ^Player, storage: ^StorageBox),
@@ -90,19 +105,34 @@ createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 	moveable := createMoveable(200)
 	inventory := createPlayerInventory({initialPosition.x, initialPosition.y, 200, 200})
 
-	sprite := createAnimatedSprite(fileName, {50, 50}, 6, {6, 6})
+	sprite := sprite.createAnimatedSprite(fileName, {50, 50}, {6, 6})
 
-	sprite->addAnimation("idle", 6, {0, 0})
-	sprite->addAnimation("walk", 6, {0, 1})
-	sprite->addAnimation("swing", 6, {0, 3})
+	sprite->addAnimation(
+		"idle",
+		{maxFrames = 6, frameCoords = {0, 0}, animationSpeed = 6, activeFrame = -1},
+	)
+	sprite->addAnimation(
+		"walk",
+		{maxFrames = 6, frameCoords = {0, 1}, animationSpeed = 6, activeFrame = -1},
+	)
+	sprite->addAnimation(
+		"swing",
+		{maxFrames = 6, frameCoords = {0, 3}, animationSpeed = 6, activeFrame = 4},
+	)
 
-	sprite->playAnimation("walk")
+	sprite->playAnimation("idle")
 
 
 	interactionRect := createArea2D(
 		AreaType.INTERACTION,
 		{initialPosition.x, initialPosition.y, 32, 32},
-		{sprite->getSpriteWidth(), sprite->getSpriteHeight()},
+		{sprite->getHeight(), sprite->getWidth()},
+		true,
+	)
+	swingRect := createArea2D(
+		AreaType.INTERACTION,
+		{initialPosition.x, initialPosition.y, 32, 32},
+		{sprite->getHeight(), sprite->getWidth()},
 		true,
 	)
 
@@ -112,6 +142,7 @@ createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 		sprite = sprite,
 		storeLogs = storeLogs,
 		interactionRect = interactionRect,
+		swingRect = swingRect,
 		inventory = inventory,
 		addReward = playerAddReward,
 		playerDraw = playerDraw,
@@ -126,17 +157,18 @@ playerAddReward :: proc(player: ^Player, rewards: [dynamic]TreeReward) {
 playerInput :: proc(player: ^Player, userInput: UserInput) {
 	player.direction = userInput.direction
 
-	if !player.isSwinging {
+	if player.isSwinging {
+		return
 
-		if userInput.justInteracted {
-			player.state = PlayerState.INTERACTION
-		} else if player.direction != {0, 0} {
-			player.state = PlayerState.WALK
-		} else if userInput.justSwung {
-			player.state = PlayerState.SWING
-		} else {
-			player.state = PlayerState.IDLE
-		}
+	}
+	if userInput.justInteracted {
+		player.state = PlayerState.INTERACTION
+	} else if player.direction != {0, 0} {
+		player.state = PlayerState.WALK
+	} else if userInput.justSwung {
+		player.state = PlayerState.SWING
+	} else {
+		player.state = PlayerState.IDLE
 	}
 
 
@@ -160,19 +192,51 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 		isSwinging = true
 	}
 
-	calculatedDelta := shared.IVector2 {
-		delta * f32(velocity) * direction.x,
-		delta * f32(velocity) * direction.y,
+	if (!isSwinging) {
+
+		calculatedDelta := shared.IVector2 {
+			delta * f32(velocity) * direction.x,
+			delta * f32(velocity) * direction.y,
+		}
+
+
+		player.moveable.move(player, calculatedDelta)
+		sprite.position = position
+
+		interactionRect->update(position)
+		swingRect->update(position)
+	} else {
+		if player.sprite->isFrameActive() && isSwinging {
+			updateEvent(player, PlayerEventKeys.SWING)
+
+		} else if player.state == PlayerState.INTERACTION {
+			updateEvent(player, PlayerEventKeys.INTERACT)
+		} else {
+			updateEvent(player, PlayerEventKeys.NONE)
+		}
+		// may create like a general state class thing
+		// It would check the state if the key is the the same as the previous state then it wouldn't do anything 
+		if playerIsSwing(player) {
+			// player.swingActive = true
+			fmt.println("Frame active")
+		}
+
 	}
-
-
-	player.moveable.move(player, calculatedDelta)
-	sprite.position = position
-	interactionRect->update(position)
 
 	if !player.sprite.isAnimationPlaying && isSwinging {
 		isSwinging = false
 	}
+
+}
+updateEvent :: proc(player: ^Player, event: PlayerEventKeys) {
+	player.events.previous = player.events.current
+	player.events.current = event
+}
+playerIsSwing :: proc(player: ^Player) -> bool {
+	return(
+		player.events.previous != PlayerEventKeys.SWING &&
+		player.events.current == PlayerEventKeys.SWING \
+	)
 
 }
 
@@ -188,8 +252,9 @@ getPlayerTotalScore :: proc(pInv: ^PlayerInventory) -> (accumulator: i32) {
 playerDraw :: proc(player: ^Player) {
 	using player
 
-	sprite->drawAnimated()
-	interactionRect->draw()
+	sprite->draw()
+	// interactionRect->draw()
+	if playerIsSwing(player) do swingRect->draw()
 	// drawScore(player)
 	player.inventory->drawInventory()
 }
