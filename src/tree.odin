@@ -83,9 +83,10 @@ isTreeDead :: proc(tree: ^Tree) -> bool {
 }
 onInteractable :: proc(tree: ^Tree, player: ^Player) {
 	success, reward := tree->onCut()
-	tree.sprite->playAnimation("cut")
+	tree.sprite->playAnimation("hit")
 	if (success) {
 		tree->onTreeDeath()
+		tree.sprite->playAnimation("stump")
 		player->addReward(reward)
 		fmt.println("Reward type", reward)
 	}
@@ -110,7 +111,7 @@ createRegularTree :: proc(initialPosition: shared.IVector2) -> RegularTree {
 	tree := createTree(fileName, treeHealth, initialPosition)
 	tree.sprite->addAnimation(
 		"idle",
-		{maxFrames = 4, frameCoords = {0, 0}, animationSpeed = 6, activeFrame = -1},
+		{maxFrames = 4, frameCoords = {0, 0}, animationSpeed = 2, activeFrame = -1},
 	)
 	tree.sprite->addAnimation(
 		"hit",
@@ -118,7 +119,7 @@ createRegularTree :: proc(initialPosition: shared.IVector2) -> RegularTree {
 	)
 	tree.sprite->addAnimation(
 		"stump",
-		{maxFrames = 1, frameCoords = {0, 2}, animationSpeed = 6, activeFrame = -1},
+		{maxFrames = 1, frameCoords = {0, 2}, animationSpeed = 1, activeFrame = -1},
 	)
 
 	tree.sprite->playAnimation("idle")

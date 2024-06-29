@@ -208,9 +208,9 @@ draw :: proc(state: ^GameState) {
 	using state
 
 	for &tree in trees {
-		if !tree->isDead() {
-			tree->draw()
-		}
+		tree->draw()
+		// if !tree->isDead() {
+		// }
 	}
 	storageBox->drawStorageBox()
 	player->playerDraw()
