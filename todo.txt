@@ -2,7 +2,7 @@
 
 Create a background of grass or field
 Get a lumberjack for the user {cm:2024-06-27}
-Customize the inventory menu to show how much of each item we have {start:2024-06-30T10:07:16}
+Customize the inventory menu to show how much of each item we have {start:2024-06-30T10:07:16} {cm:2024-06-30} {duration:32m}
 When the tree is cut we should put a treestump {cm:2024-06-30}
 Add sound of cutting when we interact with it
 add the origin of tree to be in the bottom of the tree {cm:2024-06-30}

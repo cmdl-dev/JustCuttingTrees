@@ -54,21 +54,11 @@ drawTotal :: proc(pInv: ^PlayerInventory) {
 
 	rl.DrawText(cText, i32(centerPosX) - (textWidth / 2), i32(bottomPosY) - 12, 12, rl.BLACK)
 }
-drawContents :: proc(pInv: ^PlayerInventory) {
+drawLogs :: proc(pInv: ^PlayerInventory) {
 	using pInv
-	if !show {
-		return
-	}
 
-	pInv->drawMenu()
 	padding := i32(10)
-	/*
-	Regular Wood: 2. 10kg
-	
-	
-	
-			Score
-	*/
+
 	b := strings.builder_make()
 	defer strings.builder_destroy(&b)
 
@@ -90,6 +80,15 @@ drawContents :: proc(pInv: ^PlayerInventory) {
 	textWidth := rl.MeasureText(cText, 14)
 
 	rl.DrawText(cText, i32(x) + padding, i32(y + 40), 14, rl.BLACK)
+}
+drawContents :: proc(pInv: ^PlayerInventory) {
+	using pInv
+	if !show {
+		return
+	}
+
+	pInv->drawMenu()
+	drawLogs(pInv)
 	drawTotal(pInv)
 
 }
