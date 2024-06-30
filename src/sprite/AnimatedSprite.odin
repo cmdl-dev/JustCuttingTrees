@@ -44,25 +44,8 @@ getHeight :: proc(sprite: ^AnimatedSprite) -> i32 {
 	return animationOffsets.y
 }
 
-setFrame :: proc(sprite: ^AnimatedSprite) {
-	using sprite
-
-	frameCounter += 1
-	if frameCounter > (60 / currentAnimation.animationSpeed) {
-		frameCounter = 0
-		isAnimationPlaying = true
-
-		currentFrame += 1
-		if currentFrame >= currentAnimation.maxFrames {
-			currentFrame = 0
-			isAnimationPlaying = false
-		}
-
-	}
-
-}
 drawAnimatedSprite :: proc(sprite: ^AnimatedSprite) {
-	setFrame(sprite)
+	updateAnimationFrame(sprite)
 	using sprite
 
 	rect := currentAnimation.animationPath[currentFrame]

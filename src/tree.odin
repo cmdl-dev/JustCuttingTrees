@@ -79,14 +79,23 @@ createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: rl.Vecto
 isTreeDead :: proc(tree: ^Tree) -> bool {
 	return tree.health <= 0
 }
+onUpdate :: proc(tree: ^Tree) {
+	if tree->isDead() {
+		tree.sprite->playAnimation("stump")
+		return
+
+	}
+	if !tree.sprite.animatable.isAnimationPlaying {
+		tree.sprite->playAnimation("idle")
+	}
+
+}
 onInteractable :: proc(tree: ^Tree, player: ^Player) {
 	success, reward := tree->onCut()
 	tree.sprite->playAnimation("hit")
 	if (success) {
 		tree->onTreeDeath()
-		tree.sprite->playAnimation("stump")
 		player->addReward(reward)
-		fmt.println("Reward type", reward)
 	}
 
 }
@@ -113,7 +122,7 @@ createRegularTree :: proc(initialPosition: rl.Vector2) -> RegularTree {
 	)
 	tree.sprite->addAnimation(
 		"hit",
-		{maxFrames = 2, frameCoords = {0, 1}, animationSpeed = 6, activeFrame = -1},
+		{maxFrames = 2, frameCoords = {0, 1}, animationSpeed = 2, activeFrame = -1},
 	)
 	tree.sprite->addAnimation(
 		"stump",
@@ -130,6 +139,7 @@ createRegularTree :: proc(initialPosition: rl.Vector2) -> RegularTree {
 }
 
 onRegularTreeDeath :: proc(tree: ^Tree) {
+	// TODO: spawn a tree logs on the floor
 	fmt.println("I diead")
 }
 

@@ -2,7 +2,15 @@ package sprite
 
 import "../shared"
 import rl "vendor:raylib"
-
+AnimationEventKeys :: enum {
+	NONE,
+	PLAYING,
+	FINISHED,
+}
+AnimationEvent :: struct {
+	current:  AnimationEventKeys,
+	previous: AnimationEventKeys,
+}
 FrameCoords :: struct {
 	x, y: i32,
 }
@@ -25,6 +33,7 @@ AnimationOffsets :: struct {
 	y: i32,
 }
 Animatable :: struct {
+	events:             AnimationEvent,
 	currentFrame:       i32,
 	// frameSpeed:           i32,
 	frameCounter:       i32,
@@ -39,6 +48,14 @@ Animatable :: struct {
 	playAnimation:      proc(anim: ^Animatable, name: string),
 	// resetAnimations:      proc(anim: ^Animatable),
 	// updateAnimationFrame: proc(anim: ^Animatable),
+}
+
+updateEvent :: proc(anim: ^Animatable, event: AnimationEventKeys) {
+	anim.events.previous = anim.events.current
+	anim.events.current = event
+}
+eventOccured :: proc(anim: ^Animatable, event: AnimationEventKeys) -> bool {
+	return anim.events.previous != event && anim.events.current == event
 }
 
 createAnimatable :: proc(
@@ -62,10 +79,13 @@ createAnimatable :: proc(
 
 playAnimation :: proc(anim: ^Animatable, name: string) {
 	if animation, ok := anim.animations[name]; ok {
+		// if anim.isAnimationPlaying do return
+
 		if name == anim.currentAnimation.name {
 			return
 		}
 
+		updateEvent(anim, AnimationEventKeys.NONE)
 		anim.currentAnimation = animation
 		resetAnimations(anim)
 	}
@@ -135,15 +155,19 @@ updateAnimationFrame :: proc(anim: ^Animatable) {
 	using anim
 
 	frameCounter += 1
+	updateEvent(anim, AnimationEventKeys.NONE)
 	if frameCounter > (60 / currentAnimation.animationSpeed) {
 		frameCounter = 0
-		if currentFrame >= currentAnimation.maxFrames {
+
+		if currentFrame >= currentAnimation.maxFrames - 1 {
 			currentFrame = 0
 			isAnimationPlaying = false
+			updateEvent(anim, AnimationEventKeys.FINISHED)
+		} else {
+			isAnimationPlaying = true
+			currentFrame += 1
+			updateEvent(anim, AnimationEventKeys.PLAYING)
 		}
-
-		isAnimationPlaying = true
-		currentFrame += 1
 	}
 
 

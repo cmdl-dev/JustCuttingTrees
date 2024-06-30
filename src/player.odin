@@ -133,7 +133,7 @@ createPlayer :: proc(initialPosition: rl.Vector2) -> Player {
 		{f32(sprite->getHeight() / 2), f32(sprite->getWidth() / 2)},
 		rl.Rectangle{initialPosition.x, initialPosition.y, 32, 32},
 	)
-	translate(&swingRect, {30, 0})
+	translate(&swingRect, {60, 0})
 
 	return Player {
 		actor = actor,
@@ -192,7 +192,6 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 	}
 
 	if (!isSwinging) {
-
 		calculatedDelta := rl.Vector2 {
 			delta * f32(velocity) * direction.x,
 			delta * f32(velocity) * direction.y,
@@ -204,7 +203,9 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 
 		interactionRect->update(calculatedDelta)
 		swingRect->update(calculatedDelta)
+
 	} else {
+
 		if player.sprite->isFrameActive() && isSwinging {
 			updateEvent(player, PlayerEventKeys.SWING)
 
@@ -212,12 +213,6 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 			updateEvent(player, PlayerEventKeys.INTERACT)
 		} else {
 			updateEvent(player, PlayerEventKeys.NONE)
-		}
-		// may create like a general state class thing
-		// It would check the state if the key is the the same as the previous state then it wouldn't do anything 
-		if playerIsSwing(player) {
-			// player.swingActive = true
-			fmt.println("Frame active")
 		}
 
 	}
@@ -236,9 +231,7 @@ playerIsSwing :: proc(player: ^Player) -> bool {
 		player.events.previous != PlayerEventKeys.SWING &&
 		player.events.current == PlayerEventKeys.SWING \
 	)
-
 }
-
 getPlayerTotalScore :: proc(pInv: ^PlayerInventory) -> (accumulator: i32) {
 	using pInv
 
@@ -249,19 +242,21 @@ getPlayerTotalScore :: proc(pInv: ^PlayerInventory) -> (accumulator: i32) {
 }
 
 playerDraw :: proc(player: ^Player) {
-	using player
 
-	sprite->draw()
-	if playerIsSwing(player) do swingRect->draw()
-	// drawScore(player)
+	player.sprite->draw()
+	if playerIsSwing(player) do player.swingRect->draw()
 	player.inventory->drawInventory()
-	interactionRect->draw()
+	player.interactionRect->draw()
+
+	if sprite.eventOccured(&player.sprite, sprite.AnimationEventKeys.FINISHED) {
+		fmt.println("Finished animation")
+
+	}
 }
 
 storeLogs :: proc(player: ^Player, box: ^StorageBox) {
 	using player
 
-	fmt.println("Adding logs into storage")
 	for log in inventory.storage {
 		box.storage[log.logType] += 1
 	}

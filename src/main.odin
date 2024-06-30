@@ -185,8 +185,9 @@ update :: proc(state: ^GameState, delta: f32) {
 	player->playerUpdate(delta)
 
 	// TODO: Should only interact if the axe is in its activatebl frames
-	if playerIsSwing(&player) {
-		for &tree in state.trees {
+	for &tree in state.trees {
+		onUpdate(&tree)
+		if playerIsSwing(&player) {
 			if !tree->isDead() && rl.CheckCollisionRecs(player.swingRect, tree.area) {
 				tree->onInteractable(&player)
 			}
