@@ -57,7 +57,7 @@
 
 // createAnimatedSprite :: proc(
 // 	fileName: cstring,
-// 	initiaPosition: shared.IVector2,
+// 	initiaPosition: rl.Vector2,
 // 	frameSpeed: int,
 // 	animationFrames: AnimationFrames,
 // ) -> AnimatedSprite {
@@ -103,7 +103,7 @@
 // }
 // Sprite :: struct {
 // 	texture:     rl.Texture2D,
-// 	position:    shared.IVector2,
+// 	position:    rl.Vector2,
 // 	rect:        SpriteRect,
 // 	draw:        proc(sprite: ^Sprite),
 // 	setScale:    proc(sprite: ^Sprite, scale: i32),
@@ -114,7 +114,7 @@
 // }
 
 
-// createStaticSprite :: proc(fileName: cstring, initialPosition: shared.IVector2) -> Sprite {
+// createStaticSprite :: proc(fileName: cstring, initialPosition: rl.Vector2) -> Sprite {
 // 	texture := loadTexture(fileName)
 
 // 	return {

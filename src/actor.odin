@@ -1,6 +1,6 @@
 package main
 
-import "shared"
+import rl "vendor:raylib"
 
 Facing :: enum {
 	NORTH,
@@ -11,10 +11,10 @@ Facing :: enum {
 
 
 Actor :: struct {
-	position: shared.IVector2,
+	position: rl.Vector2,
 	facing:   Facing,
 }
 
-createActor :: proc(initialPosition: shared.IVector2) -> Actor {
+createActor :: proc(initialPosition: rl.Vector2) -> Actor {
 	return {position = initialPosition}
 }

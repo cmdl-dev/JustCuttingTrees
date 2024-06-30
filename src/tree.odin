@@ -54,19 +54,17 @@ Tree :: struct {
 }
 
 
-createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: shared.IVector2) -> Tree {
+createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: rl.Vector2) -> Tree {
 	actor := createActor(initialPosition)
 	cuttable := createCuttable(treeHealth)
 	sprite := sprite.createAnimatedSprite(fileName, initialPosition, {hFrames = 4, vFrames = 3})
 	area2D := createArea2D(
 		AreaType.INTERACTION,
+		{f32(sprite->getWidth() / 2), f32(sprite->getHeight() / 2)},
 		rl.Rectangle{initialPosition.x, initialPosition.y, 32, 32},
-		{sprite->getWidth(), sprite->getHeight()},
-		true,
 	)
-	// Update the area2d to be centered
-	area2D->update(initialPosition)
-
+	translate(&area2D, {0, 70})
+	area2D->update({0, 0})
 	return {
 		actor = actor,
 		cuttable = cuttable,
@@ -104,7 +102,7 @@ RegularTree :: struct {
 }
 
 
-createRegularTree :: proc(initialPosition: shared.IVector2) -> RegularTree {
+createRegularTree :: proc(initialPosition: rl.Vector2) -> RegularTree {
 	fileName := cstring("assets/Resources/Trees/Tree.png")
 	treeHealth := 2
 

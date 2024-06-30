@@ -33,7 +33,7 @@ createPlayerInventory :: proc(rect: rl.Rectangle) -> PlayerInventory {
 		move = moveInventory,
 	}
 }
-moveInventory :: proc(inv: ^Menu, position: shared.IVector2) {
+moveInventory :: proc(inv: ^Menu, position: rl.Vector2) {
 	using inv
 	x = position.x
 	y = position.y
@@ -98,7 +98,7 @@ Player :: struct {
 }
 
 
-createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
+createPlayer :: proc(initialPosition: rl.Vector2) -> Player {
 
 	fileName := cstring("assets/Factions/Knights/Troops/Pawn/Blue/Pawn_Blue.png")
 	actor := createActor(initialPosition)
@@ -125,16 +125,15 @@ createPlayer :: proc(initialPosition: shared.IVector2) -> Player {
 
 	interactionRect := createArea2D(
 		AreaType.INTERACTION,
-		{initialPosition.x, initialPosition.y, 32, 32},
-		{sprite->getHeight(), sprite->getWidth()},
-		true,
+		{f32(sprite->getHeight() / 2), f32(sprite->getWidth() / 2)},
+		rl.Rectangle{initialPosition.x, initialPosition.y, 32, 32},
 	)
 	swingRect := createArea2D(
 		AreaType.INTERACTION,
-		{initialPosition.x, initialPosition.y, 32, 32},
-		{sprite->getHeight(), sprite->getWidth()},
-		true,
+		{f32(sprite->getHeight() / 2), f32(sprite->getWidth() / 2)},
+		rl.Rectangle{initialPosition.x, initialPosition.y, 32, 32},
 	)
+	translate(&swingRect, {30, 0})
 
 	return Player {
 		actor = actor,
@@ -194,7 +193,7 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 
 	if (!isSwinging) {
 
-		calculatedDelta := shared.IVector2 {
+		calculatedDelta := rl.Vector2 {
 			delta * f32(velocity) * direction.x,
 			delta * f32(velocity) * direction.y,
 		}
@@ -203,8 +202,8 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 		player.moveable.move(player, calculatedDelta)
 		sprite.position = position
 
-		interactionRect->update(position)
-		swingRect->update(position)
+		interactionRect->update(calculatedDelta)
+		swingRect->update(calculatedDelta)
 	} else {
 		if player.sprite->isFrameActive() && isSwinging {
 			updateEvent(player, PlayerEventKeys.SWING)
@@ -253,10 +252,10 @@ playerDraw :: proc(player: ^Player) {
 	using player
 
 	sprite->draw()
-	// interactionRect->draw()
 	if playerIsSwing(player) do swingRect->draw()
 	// drawScore(player)
 	player.inventory->drawInventory()
+	interactionRect->draw()
 }
 
 storeLogs :: proc(player: ^Player, box: ^StorageBox) {

@@ -15,7 +15,7 @@ Menu :: struct {
 	show:       bool,
 	title:      cstring,
 	drawMenu:   proc(menu: ^Menu),
-	move:       proc(menu: ^Menu, position: shared.IVector2),
+	move:       proc(menu: ^Menu, position: rl.Vector2),
 }
 
 Window :: struct {
@@ -33,7 +33,7 @@ StorageBox :: struct {
 	drawStorageBox: proc(storageBox: ^StorageBox),
 }
 
-createStorageBox :: proc(location: shared.IVector2) -> StorageBox {
+createStorageBox :: proc(location: rl.Vector2) -> StorageBox {
 
 	return {
 		x = location.x,
@@ -59,7 +59,7 @@ GameState :: struct {
 }
 
 UserInput :: struct {
-	direction:      shared.IVector2,
+	direction:      rl.Vector2,
 	justSwung:      bool,
 	justInteracted: bool,
 	tabMenuPressed: bool,
@@ -84,7 +84,7 @@ getTotalGameScore :: proc(gameState: ^GameState) -> (accumulator: i32) {
 	return
 }
 
-drawTotalScore :: proc(gameState: ^GameState, position: shared.IVector2) {
+drawTotalScore :: proc(gameState: ^GameState, position: rl.Vector2) {
 	using gameState
 
 	b := strings.builder_make()
@@ -115,7 +115,7 @@ main :: proc() {
 	rl.SetTargetFPS(window.fps)
 
 	gState := GameState {
-		player = createPlayer({0, 0}),
+		player = createPlayer({110, 0}),
 		camera = camera,
 		draw   = draw,
 		update = update,
@@ -187,7 +187,7 @@ update :: proc(state: ^GameState, delta: f32) {
 	// TODO: Should only interact if the axe is in its activatebl frames
 	if playerIsSwing(&player) {
 		for &tree in state.trees {
-			if !tree->isDead() && rl.CheckCollisionRecs(player.interactionRect, tree.area) {
+			if !tree->isDead() && rl.CheckCollisionRecs(player.swingRect, tree.area) {
 				tree->onInteractable(&player)
 			}
 		}
@@ -199,9 +199,9 @@ update :: proc(state: ^GameState, delta: f32) {
 	}
 
 
-	state.camera.target = shared.toRlVector(player.position)
+	state.camera.target = player.position
 
-	player.inventory->move(shared.RLVectorToIVector(rl.GetScreenToWorld2D({0, 100}, state.camera)))
+	player.inventory->move(rl.GetScreenToWorld2D({0, 100}, state.camera))
 }
 
 draw :: proc(state: ^GameState) {
@@ -216,6 +216,6 @@ draw :: proc(state: ^GameState) {
 	player->playerDraw()
 
 
-	drawTotalScore(state, shared.RLVectorToIVector(rl.GetScreenToWorld2D({30, 30}, state.camera)))
+	drawTotalScore(state, rl.GetScreenToWorld2D({30, 30}, state.camera))
 
 }

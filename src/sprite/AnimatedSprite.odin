@@ -14,7 +14,7 @@ AnimatedSprite :: struct {
 
 createAnimatedSprite :: proc(
 	fileName: cstring,
-	initialPosition: shared.IVector2,
+	initialPosition: rl.Vector2,
 	animationFrames: AnimationFrames,
 ) -> AnimatedSprite {
 
@@ -66,5 +66,5 @@ drawAnimatedSprite :: proc(sprite: ^AnimatedSprite) {
 	using sprite
 
 	rect := currentAnimation.animationPath[currentFrame]
-	rl.DrawTextureRec(texture, rect, shared.toRlVector(position), rl.WHITE)
+	rl.DrawTextureRec(texture, rect, position, rl.WHITE)
 }
