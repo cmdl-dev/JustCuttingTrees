@@ -18,6 +18,19 @@ Menu :: struct {
 	move:       proc(menu: ^Menu, position: rl.Vector2),
 }
 
+getMenuSizes :: proc(pInv: ^Menu) -> struct {
+		center:      rl.Vector2,
+		bottomRight: rl.Vector2,
+		topRight:    rl.Vector2,
+	} {
+	using pInv
+
+	return {
+		center = {x + (width / 2), y + (height / 2)},
+		bottomRight = {x + width, y + height},
+		topRight = {x + width, y},
+	}
+}
 Window :: struct {
 	fps:    i32,
 	width:  i32,

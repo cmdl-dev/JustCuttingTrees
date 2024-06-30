@@ -38,17 +38,11 @@ moveInventory :: proc(inv: ^Menu, position: rl.Vector2) {
 	x = position.x
 	y = position.y
 }
-drawContents :: proc(pInv: ^PlayerInventory) {
-	using pInv
-	if !show {
-		return
-	}
 
-	pInv->drawMenu()
+drawTotal :: proc(pInv: ^PlayerInventory) {
 
-	padding := i32(10)
-	centerPosX := x + (width / 2)
-	bottomPosY := y + height
+	centerPosX := getMenuSizes(pInv).center.x
+	bottomPosY := getMenuSizes(pInv).bottomRight.y
 
 	b := strings.builder_make()
 	defer strings.builder_destroy(&b)
@@ -60,12 +54,51 @@ drawContents :: proc(pInv: ^PlayerInventory) {
 
 	rl.DrawText(cText, i32(centerPosX) - (textWidth / 2), i32(bottomPosY) - 12, 12, rl.BLACK)
 }
+drawContents :: proc(pInv: ^PlayerInventory) {
+	using pInv
+	if !show {
+		return
+	}
+
+	pInv->drawMenu()
+	padding := i32(10)
+	/*
+	Regular Wood: 2. 10kg
+	
+	
+	
+			Score
+	*/
+	b := strings.builder_make()
+	defer strings.builder_destroy(&b)
+
+	regWoodTotal, willowWoodTotal: i32
+	for log in storage {
+		if log.logType == LogType.REGULAR do regWoodTotal += 1
+		if log.logType == LogType.WILLOW do willowWoodTotal += 1
+	}
+	text := fmt.sbprintf(
+		&b,
+		"Regular Wood: %d %dkg\n\nWillow Wood: %d %dkg",
+		regWoodTotal,
+		regWoodTotal * i32(LogToValueMap[LogType.REGULAR].weight),
+		willowWoodTotal,
+		willowWoodTotal * i32(LogToValueMap[LogType.WILLOW].weight),
+	)
+
+	cText := strings.to_cstring(&b)
+	textWidth := rl.MeasureText(cText, 14)
+
+	rl.DrawText(cText, i32(x) + padding, i32(y + 40), 14, rl.BLACK)
+	drawTotal(pInv)
+
+}
 
 drawMenu :: proc(inv: ^Menu) {
 	using inv
 
 	textWidth := rl.MeasureText(title, 24)
-	centerPosX := x + (width / 2)
+	centerPosX := getMenuSizes(inv).center.x
 
 	rl.DrawRectangle(i32(x), i32(y), i32(width), i32(height), rl.ORANGE) // rl.DrawRectangle(i32(x - width), i32(y - height), i32(width), i32(height), rl.ORANGE)
 	rl.DrawText(title, i32(centerPosX) - (textWidth / 2), i32(y + 5), 24, rl.BLACK)
