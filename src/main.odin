@@ -130,7 +130,7 @@ main :: proc() {
 
 	loadMap()
 	gState := GameState {
-		player = createPlayer({110, 0}),
+		player = createPlayer({600, 400}),
 		camera = camera,
 		draw   = draw,
 		update = update,
@@ -222,9 +222,9 @@ draw :: proc(state: ^GameState) {
 	using state
 
 	drawMap()
-	for &tree in trees {
-		tree->draw()
-	}
+	//for &tree in trees {
+	//	tree->draw()
+	//}
 	storageBox->drawStorageBox()
 	player->playerDraw()
 
