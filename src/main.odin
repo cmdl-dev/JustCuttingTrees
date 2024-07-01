@@ -63,6 +63,7 @@ drawStorageBox :: proc(storageBox: ^StorageBox) {
 	rl.DrawRectangle(i32(x), i32(y), i32(width), i32(height), rl.ORANGE)
 }
 GameState :: struct {
+	level:      TileMap,
 	player:     Player,
 	storageBox: StorageBox,
 	trees:      [dynamic]Tree,
@@ -128,13 +129,13 @@ main :: proc() {
 	rl.SetTraceLogLevel(rl.TraceLogLevel.ERROR)
 	rl.SetTargetFPS(window.fps)
 
-	loadMap()
 	gState := GameState {
 		player = createPlayer({600, 400}),
 		camera = camera,
 		draw   = draw,
 		update = update,
 		input  = input,
+		level  = creatTileMap("maps/test.ldtk"),
 	}
 	gState.storageBox = createStorageBox({1000, 50})
 	gState.trees = createManyTrees(20)
@@ -221,10 +222,10 @@ update :: proc(state: ^GameState, delta: f32) {
 draw :: proc(state: ^GameState) {
 	using state
 
-	drawMap()
-	//for &tree in trees {
-	//	tree->draw()
-	//}
+	state.level->draw()
+	for &tree in trees {
+		tree->draw()
+	}
 	storageBox->drawStorageBox()
 	player->playerDraw()
 

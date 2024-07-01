@@ -1,5 +1,7 @@
 package shared
 
+import "core:fmt"
+import "core:strings"
 import rl "vendor:raylib"
 
 IVector2 :: struct {
@@ -21,4 +23,11 @@ loadTexture :: proc(fileName: cstring) -> rl.Texture2D {
 
 	assert(texture.width != 0, "Could not load asset")
 	return texture
+}
+stringToCString :: proc(str: string) -> cstring {
+	b := strings.builder_make()
+	defer strings.builder_destroy(&b)
+
+	fmt.sbprintf(&b, "%s", str)
+	return strings.to_cstring(&b)
 }

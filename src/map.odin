@@ -6,10 +6,12 @@ import "core:fmt"
 import "core:path/filepath"
 import "core:path/slashpath"
 import "core:strings"
+import "shared"
 import rl "vendor:raylib"
 
 TileMap :: struct {
 	layers: [dynamic][]Tile,
+	draw:   proc(tileMap: ^TileMap),
 }
 Tile :: struct {
 	texture:  rl.Texture2D,
@@ -17,32 +19,26 @@ Tile :: struct {
 	position: rl.Vector2,
 }
 
-tile_size := 32
-collision_tiles: []u8
 
-tileMap: TileMap
+creatTileMap :: proc(level: string) -> TileMap {
+	tileMap: TileMap
+	if project, ok := ldtk.load_from_file(level, context.temp_allocator); ok {
 
-loadMap :: proc() {
-
-	if project, ok := ldtk.load_from_file("maps/test.ldtk", context.temp_allocator); ok {
 		for level in project.levels {
 			for layer in level.layer_instances {
 				switch layer.type {
 				case .IntGrid:
 				case .Entities:
-				//Tile_Instance{d = [1367, 0], f = 0, px = [64, 464], src = [96, 112], t = 286}
 				case .Tiles:
 					b := strings.builder_make()
 					defer strings.builder_destroy(&b)
 
 					// TODO: find a better way to write abs path 
 					//Removed the ../ from relative path
-					fmt.sbprintf(&b, "%s", layer.tileset_rel_path[3:])
-					fmt.println("ok", strings.to_cstring(&b))
-					texture := rl.LoadTexture(strings.to_cstring(&b))
+					texturePath := shared.stringToCString(layer.tileset_rel_path[3:])
+					texture := rl.LoadTexture(texturePath)
 
 					tile_data: []Tile = make([]Tile, len(layer.grid_tiles))
-					multiplier: f32 = f32(tile_size) / f32(layer.grid_size)
 					for val, idx in layer.grid_tiles {
 						tile_data[idx].texture = texture
 
@@ -63,10 +59,11 @@ loadMap :: proc() {
 			}
 		}
 	}
+	tileMap.draw = drawMap
+	return tileMap
 }
 
-
-drawMap :: proc() {
+drawMap :: proc(tileMap: ^TileMap) {
 	#reverse for tileData, idx in tileMap.layers {
 		for val, idk in tileData {
 			rl.DrawTextureRec(val.texture, val.rect, val.position, rl.WHITE)
