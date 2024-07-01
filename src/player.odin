@@ -254,16 +254,19 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 	}
 
 }
+
 updateEvent :: proc(player: ^Player, event: PlayerEventKeys) {
 	player.events.previous = player.events.current
 	player.events.current = event
 }
+
 playerIsSwing :: proc(player: ^Player) -> bool {
 	return(
 		player.events.previous != PlayerEventKeys.SWING &&
 		player.events.current == PlayerEventKeys.SWING \
 	)
 }
+
 getPlayerTotalScore :: proc(pInv: ^PlayerInventory) -> (accumulator: i32) {
 	using pInv
 

@@ -1,6 +1,7 @@
 
 package main
 
+
 import "constants"
 import "core:fmt"
 import "core:strings"
@@ -127,6 +128,7 @@ main :: proc() {
 	rl.SetTraceLogLevel(rl.TraceLogLevel.ERROR)
 	rl.SetTargetFPS(window.fps)
 
+	loadMap()
 	gState := GameState {
 		player = createPlayer({110, 0}),
 		camera = camera,
@@ -187,7 +189,6 @@ input :: proc(state: ^GameState) {
 	using state
 	userInput := getUserInput()
 
-	//TODO: Maybe works
 	player->playerInput(userInput)
 
 }
@@ -197,7 +198,6 @@ update :: proc(state: ^GameState, delta: f32) {
 
 	player->playerUpdate(delta)
 
-	// TODO: Should only interact if the axe is in its activatebl frames
 	for &tree in state.trees {
 		onUpdate(&tree)
 		if playerIsSwing(&player) {
@@ -221,10 +221,9 @@ update :: proc(state: ^GameState, delta: f32) {
 draw :: proc(state: ^GameState) {
 	using state
 
+	drawMap()
 	for &tree in trees {
 		tree->draw()
-		// if !tree->isDead() {
-		// }
 	}
 	storageBox->drawStorageBox()
 	player->playerDraw()

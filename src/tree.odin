@@ -9,6 +9,7 @@ Cuttable :: struct {
 	health: int,
 	onCut:  proc(tree: ^Tree) -> (success: bool, reward: [dynamic]TreeReward),
 }
+
 createCuttable :: proc(health: int) -> Cuttable {
 	return {health = health}
 }
@@ -40,6 +41,7 @@ TreeState :: enum {
 	CUT,
 	GROWING,
 }
+
 Tree :: struct {
 	using actor:    Actor,
 	using cuttable: Cuttable,
