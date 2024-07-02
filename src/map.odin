@@ -1,11 +1,9 @@
 package main
 
-import ldtk "../ldtk"
-import "constants"
 import "core:fmt"
-import "core:path/filepath"
-import "core:path/slashpath"
-import "core:strings"
+import path "core:path/filepath"
+
+import ldtk "../ldtk"
 import "shared"
 import rl "vendor:raylib"
 
@@ -23,15 +21,16 @@ CollisionTiles :: struct {
 }
 
 Tile :: struct {
-	texture:  rl.Texture2D,
-	rect:     rl.Rectangle,
-	position: rl.Vector2,
+	layerName: string,
+	texture:   rl.Texture2D,
+	rect:      rl.Rectangle,
+	position:  rl.Vector2,
 }
 
 
 creatTileMap :: proc(level: string) -> TileMap {
 	tileMap: TileMap
-	if project, ok := ldtk.load_from_file(level, context.temp_allocator); ok {
+	if project, ok := ldtk.load_from_file(level); ok {
 
 		for level in project.levels {
 			for layer in level.layer_instances {
@@ -78,12 +77,18 @@ creatTileMap :: proc(level: string) -> TileMap {
 				case .Tiles:
 					// TODO: find a better way to write abs path 
 					//Removed the ../ from relative path
-					texturePath := shared.stringToCString(layer.tileset_rel_path[3:])
+					absPath, ok := path.abs(layer.tileset_rel_path[3:])
+					assert(ok, "Could not load file")
+
+					texturePath := shared.stringToCString(absPath)
+
 					texture := rl.LoadTexture(texturePath)
+					assert(texture.width != 0, "Could not load texture")
 
 					tile_data: []Tile = make([]Tile, len(layer.grid_tiles))
 					for val, idx in layer.grid_tiles {
 						tile_data[idx].texture = texture
+						tile_data[idx].layerName = layer.identifier
 						// Where its going to go on the screen 
 						tile_data[idx].position = {f32(val.px.x), f32(val.px.y)}
 						// What part of the map 
@@ -112,8 +117,8 @@ drawMap :: proc(tileMap: ^TileMap) {
 		}
 	}
 
-	//row := 0
-	//col := 0
+	row := 0
+	col := 0
 	for rect, idx in tileMap.collision.locations {
 		rl.DrawRectangleRec(rect, rl.RED)
 	}

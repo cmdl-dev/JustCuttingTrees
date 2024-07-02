@@ -232,6 +232,7 @@ draw :: proc(state: ^GameState) {
 	using state
 
 	state.level->draw()
+
 	for &tree in trees {
 		tree->draw()
 	}
