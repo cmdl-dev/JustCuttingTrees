@@ -130,12 +130,12 @@ main :: proc() {
 	rl.SetTargetFPS(window.fps)
 
 	gState := GameState {
-		player = createPlayer({600, 400}),
+		player = createPlayer({0, 0}),
 		camera = camera,
 		draw   = draw,
 		update = update,
 		input  = input,
-		level  = creatTileMap("maps/test.ldtk"),
+		level  = creatTileMap("maps/level1test.ldtk"),
 	}
 	gState.storageBox = createStorageBox({1000, 50})
 	gState.trees = createManyTrees(20)
