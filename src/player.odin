@@ -137,7 +137,7 @@ createPlayer :: proc(initialPosition: rl.Vector2) -> Player {
 	moveable := createMoveable(200)
 	inventory := createPlayerInventory({initialPosition.x, initialPosition.y, 200, 200})
 
-	sprite := sprite.createAnimatedSprite(fileName, {50, 50}, {6, 6})
+	sprite := sprite.createAnimatedSprite(fileName, initialPosition, {6, 6})
 
 	sprite->addAnimation(
 		"idle",
@@ -157,12 +157,12 @@ createPlayer :: proc(initialPosition: rl.Vector2) -> Player {
 
 	interactionRect := createArea2D(
 		AreaType.INTERACTION,
-		{f32(sprite->getHeight() / 2), f32(sprite->getWidth() / 2)},
+		{0, 0},
 		rl.Rectangle{initialPosition.x, initialPosition.y, 32, 32},
 	)
 	swingRect := createArea2D(
 		AreaType.INTERACTION,
-		{f32(sprite->getHeight() / 2), f32(sprite->getWidth() / 2)},
+		{0, 0},
 		rl.Rectangle{initialPosition.x, initialPosition.y, 32, 32},
 	)
 	translate(&swingRect, {60, 0})

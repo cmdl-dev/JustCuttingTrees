@@ -130,13 +130,13 @@ main :: proc() {
 	rl.SetTargetFPS(window.fps)
 
 	gState := GameState {
-		player = createPlayer({0, 0}),
 		camera = camera,
 		draw   = draw,
 		update = update,
 		input  = input,
 		level  = creatTileMap("maps/level1test.ldtk"),
 	}
+	gState.player = createPlayer(gState.level.playerInitialLocation)
 	gState.storageBox = createStorageBox({1000, 50})
 	gState.trees = createManyTrees(20)
 
@@ -219,6 +219,15 @@ update :: proc(state: ^GameState, delta: f32) {
 	player.inventory->move(rl.GetScreenToWorld2D({0, 100}, state.camera))
 }
 
+drawPlayerPosition :: proc(player: ^Player, position: rl.Vector2) {
+
+	b := strings.builder_make()
+	defer strings.builder_destroy(&b)
+	text := fmt.sbprintf(&b, "(%d,%d)", i32(player.position.x), i32(player.position.y))
+	cText := strings.to_cstring(&b)
+	rl.DrawText(cText, i32(position.x), i32(position.y), 32, rl.BLACK)
+}
+
 draw :: proc(state: ^GameState) {
 	using state
 
@@ -232,4 +241,5 @@ draw :: proc(state: ^GameState) {
 
 	drawTotalScore(state, rl.GetScreenToWorld2D({30, 30}, state.camera))
 
+	drawPlayerPosition(&state.player, rl.GetScreenToWorld2D({100, 30}, state.camera))
 }

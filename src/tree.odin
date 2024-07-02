@@ -62,7 +62,7 @@ createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: rl.Vecto
 	sprite := sprite.createAnimatedSprite(fileName, initialPosition, {hFrames = 4, vFrames = 3})
 	area2D := createArea2D(
 		AreaType.INTERACTION,
-		{f32(sprite->getWidth() / 2), f32(sprite->getHeight() / 2)},
+		{0, 0},
 		rl.Rectangle{initialPosition.x, initialPosition.y, 32, 32},
 	)
 	translate(&area2D, {0, 70})

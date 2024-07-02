@@ -46,8 +46,20 @@ getHeight :: proc(sprite: ^AnimatedSprite) -> i32 {
 
 drawAnimatedSprite :: proc(sprite: ^AnimatedSprite) {
 	updateAnimationFrame(sprite)
-	using sprite
 
-	rect := currentAnimation.animationPath[currentFrame]
-	rl.DrawTextureRec(texture, rect, position, rl.WHITE)
+	rect := sprite.currentAnimation.animationPath[sprite.currentFrame]
+	rl.DrawTextureRec(
+		sprite.texture,
+		rect,
+		sprite.position -
+		[2]f32{f32(sprite.animationOffsets.x / 2), f32(sprite.animationOffsets.y / 2)},
+		rl.WHITE,
+	)
+	// rl.DrawRectangleLines(
+	// 	i32(sprite.position.x),
+	// 	i32(sprite.position.y),
+	// 	sprite.texture.width,
+	// 	sprite.texture.height,
+	// 	rl.GREEN,
+	// )
 }

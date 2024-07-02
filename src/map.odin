@@ -10,9 +10,10 @@ import "shared"
 import rl "vendor:raylib"
 
 TileMap :: struct {
-	layers:    [dynamic][]Tile,
-	draw:      proc(tileMap: ^TileMap),
-	collision: CollisionTiles,
+	layers:                [dynamic][]Tile,
+	draw:                  proc(tileMap: ^TileMap),
+	collision:             CollisionTiles,
+	playerInitialLocation: rl.Vector2,
 }
 CollisionTiles :: struct {
 	locations: []rl.Rectangle,
@@ -67,6 +68,13 @@ creatTileMap :: proc(level: string) -> TileMap {
 					tileMap.collision.locations = collisionTiles
 
 				case .Entities:
+					for entities in layer.entity_instances {
+						if entities.identifier == "Player" {
+							tileMap.playerInitialLocation.x = f32(entities.px.x)
+							tileMap.playerInitialLocation.y = f32(entities.px.y)
+						}
+
+					}
 				case .Tiles:
 					// TODO: find a better way to write abs path 
 					//Removed the ../ from relative path
