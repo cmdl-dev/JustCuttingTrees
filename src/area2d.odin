@@ -26,6 +26,7 @@ getCoordsFromOrigin :: proc(area: ^Area2D) -> (x: f32, y: f32) {
 }
 createArea2D :: proc(type: AreaType, origin: rl.Vector2, rect: rl.Rectangle) -> Area2D {
 	return Area2D {
+		type = type,
 		origin = {rect.x + origin.x, rect.y + origin.y},
 		draw = drawAreaRect,
 		update = updateLocation,
@@ -40,7 +41,13 @@ translate :: proc(area: ^Area2D, value: rl.Vector2) {
 drawAreaRect :: proc(area: ^Area2D) {
 	using area
 
-	rl.DrawRectangleLines(i32(x), i32(y), i32(width), i32(height), rl.BLUE)
+	rl.DrawRectangleLines(
+		i32(x),
+		i32(y),
+		i32(width),
+		i32(height),
+		type == AreaType.COLLISION ? rl.RED : rl.BLUE,
+	)
 
 	// rl.DrawCircle(i32(origin.x), i32(origin.y), 2, rl.RED)
 }

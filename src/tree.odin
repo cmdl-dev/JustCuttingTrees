@@ -59,7 +59,7 @@ Tree :: struct {
 createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: rl.Vector2) -> Tree {
 	actor := createActor(initialPosition)
 	cuttable := createCuttable(treeHealth)
-	sprite := sprite.createAnimatedSprite(fileName, initialPosition, {hFrames = 4, vFrames = 3})
+	sprite := sprite.createAnimatedSprite(fileName, initialPosition, {hFrames = 8, vFrames = 1})
 	area2D := createArea2D(
 		AreaType.INTERACTION,
 		{0, 0},
@@ -114,21 +114,21 @@ RegularTree :: struct {
 
 
 createRegularTree :: proc(initialPosition: rl.Vector2) -> RegularTree {
-	fileName := cstring("assets/Resources/Trees/Tree.png")
+	fileName := cstring("assets/Resources/Trees/TreeOutline.png")
 	treeHealth := 2
 
 	tree := createTree(fileName, treeHealth, initialPosition)
 	tree.sprite->addAnimation(
 		"idle",
-		{maxFrames = 4, frameCoords = {0, 0}, animationSpeed = 2, activeFrame = -1},
+		{maxFrames = 4, frameCoords = {1, 0}, animationSpeed = 2, activeFrame = -1},
 	)
 	tree.sprite->addAnimation(
 		"hit",
-		{maxFrames = 2, frameCoords = {0, 1}, animationSpeed = 2, activeFrame = -1},
+		{maxFrames = 2, frameCoords = {5, 0}, animationSpeed = 2, activeFrame = -1},
 	)
 	tree.sprite->addAnimation(
 		"stump",
-		{maxFrames = 1, frameCoords = {0, 2}, animationSpeed = 1, activeFrame = -1},
+		{maxFrames = 1, frameCoords = {7, 0}, animationSpeed = 1, activeFrame = -1},
 	)
 
 	tree.sprite->playAnimation("idle")

@@ -122,7 +122,7 @@ main :: proc() {
 	camera := rl.Camera2D {
 		offset = {f32(constants.SCREEN_WIDTH / 2), f32(constants.SCREEN_HEIGHT / 2)}, // Camera offset (displacement from target)
 		target = {0, 0}, // Camera target (rotation and zoom origin)
-		zoom   = 1.3, // Camera zoom (scaling), should be 1.0f by default
+		zoom   = 1.5, // Camera zoom (scaling), should be 1.0f by default
 	}
 	rl.InitWindow(window.width, window.height, window.title)
 
@@ -147,10 +147,12 @@ main :: proc() {
 		// Capture input
 		gState->input()
 		// Handle update
+
 		gState->update(delta)
 		rl.BeginDrawing()
 		rl.BeginMode2D(gState.camera)
 		rl.ClearBackground(rl.WHITE)
+
 		// Handle draw
 		gState->draw()
 		rl.EndMode2D()
@@ -173,6 +175,7 @@ getUserInput :: proc() -> (userInput: UserInput) {
 	if (rl.IsKeyDown(rl.KeyboardKey.U)) {
 		userInput.direction.x += 1
 	}
+
 	if (rl.IsKeyPressed(rl.KeyboardKey.P)) {
 		userInput.justInteracted = true
 	}
@@ -207,6 +210,7 @@ update :: proc(state: ^GameState, delta: f32) {
 			}
 		}
 	}
+
 	if player.state == PlayerState.INTERACTION {
 		if rl.CheckCollisionRecs(storageBox, player.interactionRect) {
 			player->storeLogs(&storageBox)
