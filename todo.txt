@@ -1,6 +1,6 @@
 
 
-Create a background of grass or field
+Create a background of grass or field {cm:2024-07-01}
 Get a lumberjack for the user {cm:2024-06-27}
 Customize the inventory menu to show how much of each item we have {start:2024-06-30T10:07:16} {cm:2024-06-30} {duration:32m}
 When the tree is cut we should put a treestump {cm:2024-06-30}

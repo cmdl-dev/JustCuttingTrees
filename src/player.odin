@@ -117,6 +117,7 @@ Player :: struct {
 	isSwinging:      bool,
 	sprite:          sprite.AnimatedSprite,
 	interactionRect: Area2D,
+	collisionRect:   Area2D,
 	swingActive:     bool,
 	swingRect:       Area2D,
 	events:          PlayerEvent,
@@ -154,6 +155,12 @@ createPlayer :: proc(initialPosition: rl.Vector2) -> Player {
 
 	sprite->playAnimation("idle")
 
+	collisionRect := createArea2D(
+		AreaType.COLLISION,
+		{0, 0},
+		rl.Rectangle{initialPosition.x, initialPosition.y, 16, 16},
+	)
+	translate(&collisionRect, {0, 24})
 
 	interactionRect := createArea2D(
 		AreaType.INTERACTION,
@@ -173,6 +180,7 @@ createPlayer :: proc(initialPosition: rl.Vector2) -> Player {
 		sprite = sprite,
 		storeLogs = storeLogs,
 		interactionRect = interactionRect,
+		collisionRect = collisionRect,
 		swingRect = swingRect,
 		inventory = inventory,
 		addReward = playerAddReward,
@@ -235,6 +243,7 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 
 		interactionRect->update(calculatedDelta)
 		swingRect->update(calculatedDelta)
+		collisionRect->update(calculatedDelta)
 
 	} else {
 
@@ -282,6 +291,7 @@ playerDraw :: proc(player: ^Player) {
 	if playerIsSwing(player) do player.swingRect->draw()
 	player.inventory->drawInventory()
 	player.interactionRect->draw()
+	player.collisionRect->draw()
 
 	if sprite.eventOccured(&player.sprite, sprite.AnimationEventKeys.FINISHED) {
 		fmt.println("Finished animation")
