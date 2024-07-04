@@ -63,14 +63,15 @@ drawStorageBox :: proc(storageBox: ^StorageBox) {
 	rl.DrawRectangle(i32(x), i32(y), i32(width), i32(height), rl.ORANGE)
 }
 GameState :: struct {
-	level:      TileMap,
-	player:     Player,
-	storageBox: StorageBox,
-	trees:      [dynamic]Tree,
-	camera:     rl.Camera2D,
-	draw:       proc(state: ^GameState),
-	input:      proc(state: ^GameState),
-	update:     proc(state: ^GameState, delta: f32),
+	level:           TileMap,
+	player:          Player,
+	storageBox:      StorageBox,
+	isCameraStopped: bool,
+	trees:           [dynamic]Tree,
+	camera:          rl.Camera2D,
+	draw:            proc(state: ^GameState),
+	input:           proc(state: ^GameState),
+	update:          proc(state: ^GameState, delta: f32),
 }
 
 UserInput :: struct {
@@ -119,16 +120,15 @@ main :: proc() {
 		title  = "Just Cutting Trees",
 		fps    = constants.TARGET_FPS,
 	}
-	camera := rl.Camera2D {
-		offset = {f32(constants.SCREEN_WIDTH / 2), f32(constants.SCREEN_HEIGHT / 2)}, // Camera offset (displacement from target)
-		target = {0, 0}, // Camera target (rotation and zoom origin)
-		zoom   = 1.5, // Camera zoom (scaling), should be 1.0f by default
-	}
 	rl.InitWindow(window.width, window.height, window.title)
 
 	rl.SetTraceLogLevel(rl.TraceLogLevel.ERROR)
 	rl.SetTargetFPS(window.fps)
 
+	camera := rl.Camera2D {
+		offset = {f32(constants.SCREEN_WIDTH / 2), f32(constants.SCREEN_HEIGHT / 2)}, // Camera offset (displacement from target)
+		zoom   = 2, // Camera zoom (scaling), should be 1.0f by default
+	}
 	gState := GameState {
 		camera = camera,
 		draw   = draw,
@@ -137,6 +137,8 @@ main :: proc() {
 		level  = creatTileMap("maps/level1test.ldtk"),
 	}
 	gState.player = createPlayer(gState.level.playerInitialLocation)
+	gState.camera.target = gState.player.position
+
 	gState.storageBox = createStorageBox({1000, 50})
 	gState.trees = createManyTrees(20)
 
@@ -197,6 +199,37 @@ input :: proc(state: ^GameState) {
 
 }
 
+hasEnteredCenter :: proc(player: ^Player, camera: ^rl.Camera2D) -> bool {
+	pos := rl.GetScreenToWorld2D(camera.offset, camera^)
+	centerRect := rl.Rectangle {
+		x      = pos.x,
+		y      = pos.y,
+		width  = 100,
+		height = 100,
+	}
+	// pos := rl.GetScreenToWorld2D({0, 0}, camera^)
+	// if pos.x <= 0 {
+	// 	return true
+	// }
+	// if pos.y <= 0 {
+	// 	return true
+	// }
+	// return false
+
+	return rl.CheckCollisionRecs(player.interactionRect, centerRect)
+}
+hasReachedCornerOfScreen :: proc(camera: ^rl.Camera2D) -> bool {
+	pos := rl.GetScreenToWorld2D({0, 0}, camera^)
+	if pos.x <= 0 {
+		return true
+	}
+	if pos.y <= 0 {
+		return true
+	}
+	return false
+
+}
+
 update :: proc(state: ^GameState, delta: f32) {
 	using state
 
@@ -219,7 +252,7 @@ update :: proc(state: ^GameState, delta: f32) {
 
 
 	state.camera.target = player.position
-
+	// fmt.printfln("offset", state.camera.offset)
 	player.inventory->move(rl.GetScreenToWorld2D({0, 100}, state.camera))
 }
 
@@ -244,6 +277,8 @@ draw :: proc(state: ^GameState) {
 	player->playerDraw()
 
 
+	fpsPos := rl.GetScreenToWorld2D({state.camera.offset.x, 30}, state.camera)
+	rl.DrawFPS(i32(fpsPos.x), i32(fpsPos.y))
 	drawTotalScore(state, rl.GetScreenToWorld2D({30, 30}, state.camera))
 
 	drawPlayerPosition(&state.player, rl.GetScreenToWorld2D({100, 30}, state.camera))

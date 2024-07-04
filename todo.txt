@@ -15,3 +15,4 @@ resizeable window
 add background sound
 change inventory from attached to the user into its own menu {start:2024-06-26T12:55:11} {f} {cm:2024-06-27} {duration:1d_07h33m}
 Have an out line for tree he is going to be cutting
+Adding a minimap
