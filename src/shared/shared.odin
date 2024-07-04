@@ -21,7 +21,7 @@ RLVectorToIVector :: proc(vec: [2]f32) -> IVector2 {
 loadTexture :: proc(fileName: cstring) -> rl.Texture2D {
 	texture := rl.LoadTexture(fileName)
 
-	assert(texture.width != 0, "Could not load asset")
+	assert(texture.width != 0, strings.concatenate({"Could not load asset: ", string(fileName)}))
 	return texture
 }
 stringToCString :: proc(str: string) -> cstring {

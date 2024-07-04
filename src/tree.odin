@@ -59,7 +59,11 @@ Tree :: struct {
 createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: rl.Vector2) -> Tree {
 	actor := createActor(initialPosition)
 	cuttable := createCuttable(treeHealth)
-	sprite := sprite.createAnimatedSprite(fileName, initialPosition, {hFrames = 8, vFrames = 1})
+
+	sprite, ok := sprite.createAnimatedSprite(string(fileName), initialPosition)
+	if !ok {
+		fmt.println("could not create animated sprite")
+	}
 	area2D := createArea2D(
 		AreaType.INTERACTION,
 		{0, 0},
@@ -83,18 +87,18 @@ isTreeDead :: proc(tree: ^Tree) -> bool {
 }
 onUpdate :: proc(tree: ^Tree) {
 	if tree->isDead() {
-		tree.sprite->playAnimation("stump")
+		tree.sprite->playAnimation("Chopped")
 		return
 
 	}
 	if !tree.sprite.animatable.isAnimationPlaying {
-		tree.sprite->playAnimation("idle")
+		tree.sprite->playAnimation("Idle")
 	}
 
 }
 onInteractable :: proc(tree: ^Tree, player: ^Player) {
 	success, reward := tree->onCut()
-	tree.sprite->playAnimation("hit")
+	tree.sprite->playAnimation("Hit")
 	if (success) {
 		tree->onTreeDeath()
 		player->addReward(reward)
@@ -114,24 +118,23 @@ RegularTree :: struct {
 
 
 createRegularTree :: proc(initialPosition: rl.Vector2) -> RegularTree {
-	fileName := cstring("assets/Resources/Trees/TreeOutline.png")
 	treeHealth := 2
 
-	tree := createTree(fileName, treeHealth, initialPosition)
-	tree.sprite->addAnimation(
-		"idle",
-		{maxFrames = 4, frameCoords = {1, 0}, animationSpeed = 2, activeFrame = -1},
-	)
-	tree.sprite->addAnimation(
-		"hit",
-		{maxFrames = 2, frameCoords = {5, 0}, animationSpeed = 2, activeFrame = -1},
-	)
-	tree.sprite->addAnimation(
-		"stump",
-		{maxFrames = 1, frameCoords = {7, 0}, animationSpeed = 1, activeFrame = -1},
-	)
+	tree := createTree("regularTree", treeHealth, initialPosition)
+	// tree.sprite->addAnimation(
+	// 	"idle",
+	// 	{maxFrames = 4, frameCoords = {1, 0}, animationSpeed = 2, activeFrame = -1},
+	// )
+	// tree.sprite->addAnimation(
+	// 	"hit",
+	// 	{maxFrames = 2, frameCoords = {5, 0}, animationSpeed = 2, activeFrame = -1},
+	// )
+	// tree.sprite->addAnimation(
+	// 	"stump",
+	// 	{maxFrames = 1, frameCoords = {7, 0}, animationSpeed = 1, activeFrame = -1},
+	// )
 
-	tree.sprite->playAnimation("idle")
+	tree.sprite->playAnimation("Idle")
 	tree.onTreeDeath = onRegularTreeDeath
 
 	reward := createLogReward(LogType.REGULAR)

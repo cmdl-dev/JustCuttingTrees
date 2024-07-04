@@ -133,27 +133,17 @@ Player :: struct {
 
 createPlayer :: proc(initialPosition: rl.Vector2) -> Player {
 
-	fileName := cstring("assets/Factions/Knights/Troops/Pawn/Blue/Pawn_Blue.png")
 	actor := createActor(initialPosition)
 	moveable := createMoveable(200)
 	inventory := createPlayerInventory({initialPosition.x, initialPosition.y, 200, 200})
 
-	sprite := sprite.createAnimatedSprite(fileName, initialPosition, {6, 6})
+	sprite, ok := sprite.createAnimatedSprite("player", initialPosition)
+	if !ok {
+		fmt.println("Could not load player sprite")
+	}
 
-	sprite->addAnimation(
-		"idle",
-		{maxFrames = 6, frameCoords = {0, 0}, animationSpeed = 6, activeFrame = -1},
-	)
-	sprite->addAnimation(
-		"walk",
-		{maxFrames = 6, frameCoords = {0, 1}, animationSpeed = 6, activeFrame = -1},
-	)
-	sprite->addAnimation(
-		"swing",
-		{maxFrames = 6, frameCoords = {0, 3}, animationSpeed = 6, activeFrame = 4},
-	)
 
-	sprite->playAnimation("idle")
+	sprite->playAnimation("Run")
 
 	collisionRect := createArea2D(
 		AreaType.COLLISION,
@@ -221,13 +211,13 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 	using player
 	switch player.state {
 	case .INTERACTION:
-		player.sprite->playAnimation("idle")
+		player.sprite->playAnimation("Idle")
 	case .IDLE:
-		player.sprite->playAnimation("idle")
+		player.sprite->playAnimation("Idle")
 	case .WALK:
-		player.sprite->playAnimation("walk")
+		player.sprite->playAnimation("Run")
 	case .SWING:
-		player.sprite->playAnimation("swing")
+		player.sprite->playAnimation("Chop")
 		isSwinging = true
 	}
 

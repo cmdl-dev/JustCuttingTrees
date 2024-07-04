@@ -3,21 +3,15 @@ package aesprite
 import "core:encoding/json"
 import "core:os"
 
-load_from_file :: proc(
-	filename: string,
-	allocator := context.allocator,
-) -> (
-	AespriteProject,
-	bool,
-) {
+loadFromFile :: proc(filename: string, allocator := context.allocator) -> (AespriteProject, bool) {
 	data, ok := os.read_entire_file(filename, allocator)
 	if !ok {
 		return AespriteProject{}, false
 	}
-	return load_from_memory(data, allocator)
+	return loadFromMemory(data, allocator)
 }
 
-load_from_memory :: proc(data: []byte, allocator := context.allocator) -> (AespriteProject, bool) {
+loadFromMemory :: proc(data: []byte, allocator := context.allocator) -> (AespriteProject, bool) {
 	result: AespriteProject
 	err := json.unmarshal(data, &result, json.DEFAULT_SPECIFICATION, allocator)
 	if err == nil {
@@ -52,6 +46,7 @@ FrameTag :: struct {
 	to:        int `json:"to"`,
 	direction: string `json:"direction"`,
 	color:     string `json:"color"`,
+	data:      Maybe(string) `json:"data"`,
 }
 FrameCoordsSize :: struct {
 	x: int `json:"x"`,
@@ -70,11 +65,11 @@ FrameCoords :: struct {
 
 Frame :: struct {
 	// x,y,w,h format
-	fileName:         string `json:"fileName"`,
-	frame:            FrameSize `json:"frame"`,
+	fileName:         string `json:"filename"`,
+	frame:            FrameCoordsSize `json:"frame"`,
 	rotated:          bool `json:"rotated"`,
 	trimmed:          bool `json:"trimmed"`,
 	spriteSourceSize: FrameCoordsSize `json:"spriteSourceSize"`,
-	sourceSize:       FrameCoords `json:"sourceSize"`,
+	sourceSize:       FrameSize `json:"sourceSize"`,
 	duration:         int `json:"duration"`,
 }

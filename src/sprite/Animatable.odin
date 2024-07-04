@@ -21,7 +21,7 @@ AnimationInfo :: struct {
 	animationSpeed: i32,
 	// Which frame is active
 	activeFrame:    i32,
-	animationPath:  [dynamic]rl.Rectangle,
+	animationPath:  []rl.Rectangle,
 }
 
 AnimationFrames :: struct {
@@ -100,6 +100,7 @@ IAddAnimation :: struct {
 	frameCoords:    rl.Vector2,
 	animationSpeed: i32,
 	activeFrame:    i32,
+	animationPath:  []rl.Rectangle,
 }
 
 addAnimation :: proc(anim: ^Animatable, name: string, info: IAddAnimation) {
@@ -110,7 +111,7 @@ addAnimation :: proc(anim: ^Animatable, name: string, info: IAddAnimation) {
 		frameCoords    = info.frameCoords,
 		animationSpeed = info.animationSpeed,
 		activeFrame    = info.activeFrame,
-		animationPath  = createAnimationPath(anim, info),
+		animationPath  = info.animationPath,
 	}
 
 }
