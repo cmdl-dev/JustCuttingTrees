@@ -69,6 +69,8 @@ GameState :: struct {
 	isCameraStopped: bool,
 	trees:           [dynamic]Tree,
 	camera:          rl.Camera2D,
+	showMiniMap:     bool,
+	renderTexture:   rl.RenderTexture2D,
 	draw:            proc(state: ^GameState),
 	input:           proc(state: ^GameState),
 	update:          proc(state: ^GameState, delta: f32),
@@ -81,6 +83,15 @@ UserInput :: struct {
 	tabMenuPressed: bool,
 }
 
+drawMiniMap :: proc(renderTexture: ^rl.RenderTexture2D, camera: ^rl.Camera2D) {
+	rl.BeginTextureMode(renderTexture^)
+	rl.ClearBackground(rl.SKYBLUE)
+	// zeroPos := rl.GetScreenToWorld2D({0, 0}, camera^)
+
+	// rl.DrawRectangle(i32(pos.x), i32(pos.y), 100, 100, rl.BLUE)
+	rl.EndTextureMode()
+
+}
 createManyTrees :: proc(count: i32) -> (trees: [dynamic]Tree) {
 	for c in 0 ..< count {
 		x := rnd.float32_range(200, 1500)
@@ -136,6 +147,8 @@ main :: proc() {
 		input  = input,
 		level  = creatTileMap("maps/level1test.ldtk"),
 	}
+
+	gState.renderTexture = rl.LoadRenderTexture(150, 150)
 	gState.player = createPlayer(gState.level.playerInitialLocation)
 	gState.camera.target = gState.player.position
 
@@ -144,6 +157,7 @@ main :: proc() {
 
 
 	for !rl.WindowShouldClose() {
+		drawMiniMap(&gState.renderTexture, &gState.camera)
 
 		delta := rl.GetFrameTime()
 		// Capture input
@@ -151,12 +165,15 @@ main :: proc() {
 		// Handle update
 
 		gState->update(delta)
+		// -----
 		rl.BeginDrawing()
 		rl.BeginMode2D(gState.camera)
 		rl.ClearBackground(rl.WHITE)
 
-		// Handle draw
+		// // Handle draw
 		gState->draw()
+
+
 		rl.EndMode2D()
 		rl.EndDrawing()
 	}
@@ -268,6 +285,7 @@ drawPlayerPosition :: proc(player: ^Player, position: rl.Vector2) {
 draw :: proc(state: ^GameState) {
 	using state
 
+
 	state.level->draw()
 
 	for &tree in trees {
@@ -282,4 +300,18 @@ draw :: proc(state: ^GameState) {
 	drawTotalScore(state, rl.GetScreenToWorld2D({30, 30}, state.camera))
 
 	drawPlayerPosition(&state.player, rl.GetScreenToWorld2D({100, 30}, state.camera))
+
+
+	pos := rl.GetScreenToWorld2D(
+		{f32(constants.SCREEN_WIDTH - (state.renderTexture.texture.width * 2) + 20), 50},
+		state.camera,
+	)
+	rl.DrawTextureRec(
+		state.renderTexture.texture,
+		{0, 0, f32(state.renderTexture.texture.width), f32(-state.renderTexture.texture.height)},
+		pos,
+		rl.WHITE,
+	)
+	// DrawTextureRec(target.texture, (Rectangle) { 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2) { 0, 0 }, WHITE);
+
 }

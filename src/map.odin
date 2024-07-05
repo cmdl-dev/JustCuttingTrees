@@ -27,6 +27,10 @@ Tile :: struct {
 	position:  rl.Vector2,
 }
 
+IntGridValues :: enum {
+	Collision = 1,
+	MiniMapBounds,
+}
 
 creatTileMap :: proc(level: string) -> TileMap {
 	tileMap: TileMap
@@ -49,7 +53,7 @@ creatTileMap :: proc(level: string) -> TileMap {
 					row := 0
 					col := 0
 					for val, idx in layer.int_grid_csv {
-						if val != 0 {
+						if IntGridValues(val) == IntGridValues.Collision {
 							collisionTiles[idx] = rl.Rectangle {
 								f32(col * layer.grid_size),
 								f32(row * layer.grid_size),

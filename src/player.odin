@@ -285,10 +285,10 @@ playerDraw :: proc(player: ^Player) {
 	player.interactionRect->draw()
 	player.collisionRect->draw()
 
-	if sprite.eventOccured(&player.sprite, sprite.AnimationEventKeys.FINISHED) {
-		fmt.println("Finished animation")
+	// if sprite.eventOccured(&player.sprite, sprite.AnimationEventKeys.FINISHED) {
+	// 	fmt.println("Finished animation")
 
-	}
+	// }
 }
 
 storeLogs :: proc(player: ^Player, box: ^StorageBox) {
