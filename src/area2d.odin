@@ -57,3 +57,47 @@ updateLocation :: proc(area: ^Area2D, deltaPos: rl.Vector2) {
 	area.origin += deltaPos
 	x, y = getCoordsFromOrigin(area)
 }
+
+
+GetAdjustedVectorFromCollision :: proc(
+	box: rl.Rectangle,
+	boxes: []rl.Rectangle,
+	calculatedPosition: rl.Vector2,
+) -> (
+	pos: rl.Vector2,
+) {
+	futurePosition := box
+
+	pos = calculatedPosition
+
+
+	futurePosition.x += f32(pos.x)
+
+	for cBox in boxes {
+		if rl.CheckCollisionRecs(cBox, futurePosition) {
+			if pos.x > 0 {
+				pos.x = (cBox.x - box.width) - box.x
+			} else if pos.x < 0 {
+				pos.x = (cBox.x + cBox.width) - box.x
+			}
+		}
+	}
+
+	futurePosition.x = box.x + f32(pos.x)
+
+	futurePosition.y += f32(pos.y)
+	for cBox in boxes {
+		if rl.CheckCollisionRecs(cBox, futurePosition) {
+			if pos.y > 0 {
+				pos.y = (cBox.y - box.height) - box.y
+			} else if pos.y < 0 {
+				pos.y = (cBox.y + cBox.height) - box.y
+			}
+		}
+	}
+
+
+	return pos
+
+
+}

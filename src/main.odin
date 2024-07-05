@@ -233,7 +233,7 @@ hasReachedCornerOfScreen :: proc(camera: ^rl.Camera2D) -> bool {
 update :: proc(state: ^GameState, delta: f32) {
 	using state
 
-	player->playerUpdate(delta)
+	player->playerUpdate(&state.level.collision, delta)
 
 	for &tree in state.trees {
 		onUpdate(&tree)

@@ -126,7 +126,7 @@ Player :: struct {
 	storeLogs:       proc(player: ^Player, storage: ^StorageBox),
 	addReward:       proc(player: ^Player, reward: [dynamic]TreeReward),
 	playerInput:     proc(player: ^Player, userInput: UserInput),
-	playerUpdate:    proc(player: ^Player, delta: f32),
+	playerUpdate:    proc(player: ^Player, collisionTiles: ^CollisionTiles, delta: f32),
 	playerDraw:      proc(player: ^Player),
 }
 
@@ -207,7 +207,7 @@ playerInput :: proc(player: ^Player, userInput: UserInput) {
 
 }
 
-playerUpdate :: proc(player: ^Player, delta: f32) {
+playerUpdate :: proc(player: ^Player, collisionTiles: ^CollisionTiles, delta: f32) {
 	using player
 	switch player.state {
 	case .INTERACTION:
@@ -222,11 +222,13 @@ playerUpdate :: proc(player: ^Player, delta: f32) {
 	}
 
 	if (!isSwinging) {
-		calculatedDelta := rl.Vector2 {
-			delta * f32(velocity) * direction.x,
-			delta * f32(velocity) * direction.y,
-		}
 
+
+		calculatedDelta := GetAdjustedVectorFromCollision(
+			player.collisionRect,
+			collisionTiles.locations,
+			{delta * f32(velocity) * direction.x, delta * f32(velocity) * direction.y},
+		)
 
 		player.moveable.move(player, calculatedDelta)
 		sprite.position = position
