@@ -303,7 +303,7 @@ draw :: proc(state: ^GameState) {
 
 
 	pos := rl.GetScreenToWorld2D(
-		{f32(constants.SCREEN_WIDTH - (state.renderTexture.texture.width * 2) + 20), 50},
+		{f32(constants.SCREEN_WIDTH - (state.renderTexture.texture.width * 2) - 20), 50},
 		state.camera,
 	)
 	rl.DrawTextureRec(
