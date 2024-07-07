@@ -24,10 +24,15 @@ loadTexture :: proc(fileName: cstring) -> rl.Texture2D {
 	assert(texture.width != 0, strings.concatenate({"Could not load asset: ", string(fileName)}))
 	return texture
 }
-stringToCString :: proc(str: string) -> cstring {
+stringToCString :: proc(str: string) -> (cs: cstring) {
 	b := strings.builder_make()
-	defer strings.builder_destroy(&b)
+	// TODO: Figure this out 
+	// defer strings.builder_destroy(&b)
 
-	fmt.sbprintf(&b, "%s", str)
-	return strings.to_cstring(&b)
+
+	strings.write_string(&b, str)
+
+
+	cs = strings.to_cstring(&b)
+	return
 }

@@ -83,15 +83,12 @@ UserInput :: struct {
 	tabMenuPressed: bool,
 }
 
-drawMiniMap :: proc(renderTexture: ^rl.RenderTexture2D, camera: ^rl.Camera2D) {
+drawMiniMap :: proc(renderTexture: ^rl.RenderTexture2D, tMap: ^TileMap , camera: ^rl.Camera2D) {
 	rl.BeginTextureMode(renderTexture^)
 	rl.ClearBackground(rl.SKYBLUE)
-	// zeroPos := rl.GetScreenToWorld2D({0, 0}, camera^)
-
-	// rl.DrawRectangle(i32(pos.x), i32(pos.y), 100, 100, rl.BLUE)
-	rl.EndTextureMode()
-
+	zeroPos := rl.GetScreenToWorld2D({0, 0}, camera^)
 }
+
 createManyTrees :: proc(count: i32) -> (trees: [dynamic]Tree) {
 	for c in 0 ..< count {
 		x := rnd.float32_range(200, 1500)
@@ -157,7 +154,7 @@ main :: proc() {
 
 
 	for !rl.WindowShouldClose() {
-		drawMiniMap(&gState.renderTexture, &gState.camera)
+		drawMiniMap(&gState.renderTexture, &gState.level, &gState.camera)
 
 		delta := rl.GetFrameTime()
 		// Capture input
@@ -182,16 +179,17 @@ main :: proc() {
 getUserInput :: proc() -> (userInput: UserInput) {
 
 
-	if (rl.IsKeyDown(rl.KeyboardKey.PERIOD)) {
+	if (rl.IsKeyDown(rl.KeyboardKey.W)) {
 		userInput.direction.y += -1
 	}
-	if (rl.IsKeyDown(rl.KeyboardKey.O)) {
+	if (rl.IsKeyDown(rl.KeyboardKey.A)) {
 		userInput.direction.x += -1
 	}
-	if (rl.IsKeyDown(rl.KeyboardKey.E)) {
+	if (rl.IsKeyDown(rl.KeyboardKey.S)) {
 		userInput.direction.y += 1
 	}
-	if (rl.IsKeyDown(rl.KeyboardKey.U)) {
+
+	if (rl.IsKeyDown(rl.KeyboardKey.D)) {
 		userInput.direction.x += 1
 	}
 

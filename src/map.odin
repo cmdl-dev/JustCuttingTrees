@@ -84,11 +84,10 @@ creatTileMap :: proc(level: string) -> TileMap {
 					absPath, ok := path.abs(layer.tileset_rel_path[3:])
 					assert(ok, "Could not load file")
 
+					fmt.println(absPath)
 					texturePath := shared.stringToCString(absPath)
 
-					texture := rl.LoadTexture(texturePath)
-					assert(texture.width != 0, "Could not load texture")
-					fmt.println("Texture url", texturePath)
+					texture := shared.loadTexture(texturePath)
 					tile_data: []Tile = make([]Tile, len(layer.grid_tiles))
 					for val, idx in layer.grid_tiles {
 						tile_data[idx].texture = texture
