@@ -83,11 +83,13 @@ UserInput :: struct {
 	tabMenuPressed: bool,
 }
 
-drawMiniMap :: proc(renderTexture: ^rl.RenderTexture2D, tMap: ^TileMap , camera: ^rl.Camera2D) {
-	rl.BeginTextureMode(renderTexture^)
-	rl.ClearBackground(rl.SKYBLUE)
-	zeroPos := rl.GetScreenToWorld2D({0, 0}, camera^)
-}
+// drawMiniMap :: proc(gState: ^GameState) {
+//     using gState
+// 	rl.BeginTextureMode(renderTexture)
+// 	rl.ClearBackground(rl.SKYBLUE)
+//
+//     rl.EndTextureMode()
+// }
 
 createManyTrees :: proc(count: i32) -> (trees: [dynamic]Tree) {
 	for c in 0 ..< count {
@@ -145,7 +147,7 @@ main :: proc() {
 		level  = creatTileMap("maps/level1test.ldtk"),
 	}
 
-	gState.renderTexture = rl.LoadRenderTexture(150, 150)
+	gState.renderTexture = rl.LoadRenderTexture(192, 108)
 	gState.player = createPlayer(gState.level.playerInitialLocation)
 	gState.camera.target = gState.player.position
 
@@ -154,7 +156,7 @@ main :: proc() {
 
 
 	for !rl.WindowShouldClose() {
-		drawMiniMap(&gState.renderTexture, &gState.level, &gState.camera)
+		gState.level->drawMiniMap(&gState)
 
 		delta := rl.GetFrameTime()
 		// Capture input
@@ -222,14 +224,6 @@ hasEnteredCenter :: proc(player: ^Player, camera: ^rl.Camera2D) -> bool {
 		width  = 100,
 		height = 100,
 	}
-	// pos := rl.GetScreenToWorld2D({0, 0}, camera^)
-	// if pos.x <= 0 {
-	// 	return true
-	// }
-	// if pos.y <= 0 {
-	// 	return true
-	// }
-	// return false
 
 	return rl.CheckCollisionRecs(player.interactionRect, centerRect)
 }
@@ -304,6 +298,7 @@ draw :: proc(state: ^GameState) {
 		{f32(constants.SCREEN_WIDTH - (state.renderTexture.texture.width * 2) - 20), 50},
 		state.camera,
 	)
+
 	rl.DrawTextureRec(
 		state.renderTexture.texture,
 		{0, 0, f32(state.renderTexture.texture.width), f32(-state.renderTexture.texture.height)},

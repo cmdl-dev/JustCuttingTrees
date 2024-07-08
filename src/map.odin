@@ -9,9 +9,10 @@ import rl "vendor:raylib"
 
 TileMap :: struct {
 	layers:                [dynamic][]Tile,
-	draw:                  proc(tileMap: ^TileMap),
 	collision:             CollisionTiles,
 	playerInitialLocation: rl.Vector2,
+	draw:                  proc(tileMap: ^TileMap),
+	drawMiniMap:           proc(tileMap: ^TileMap, gState: ^GameState),
 }
 CollisionTiles :: struct {
 	locations: []rl.Rectangle,
@@ -79,12 +80,9 @@ creatTileMap :: proc(level: string) -> TileMap {
 
 					}
 				case .Tiles:
-					// TODO: find a better way to write abs path 
-					//Removed the ../ from relative path
 					absPath, ok := path.abs(layer.tileset_rel_path[3:])
 					assert(ok, "Could not load file")
 
-					fmt.println(absPath)
 					texturePath := shared.stringToCString(absPath)
 
 					texture := shared.loadTexture(texturePath)
@@ -110,7 +108,49 @@ creatTileMap :: proc(level: string) -> TileMap {
 		}
 	}
 	tileMap.draw = drawMap
+	tileMap.drawMiniMap = drawMiniMap
 	return tileMap
+}
+
+
+// Draw the camera lines
+drawMiniMap :: proc(tileMap: ^TileMap, gState: ^GameState) {
+	rl.BeginTextureMode(gState.renderTexture)
+	width := gState.renderTexture.texture.width
+	height := gState.renderTexture.texture.height
+	// Setting scale based on the width of the texture and the width of the screen 
+	scaleSize :=
+		[2]f32{f32(width), f32(height)} /
+		[2]f32{f32(rl.GetScreenWidth()), f32(rl.GetScreenHeight())}
+
+	// Getting topleft position of the camera
+	camPos := rl.GetScreenToWorld2D({0, 0}, gState.camera)
+	// Getting the percentage of where the camera is compared to the screen
+	// If the camera is on 0,0 then it is 0% of the screen, if camera is in the middle of the screen then it would be 50%
+	percent: [2]f32 = camPos.xy / {f32(rl.GetScreenWidth()), f32(rl.GetScreenHeight())}
+
+	// Making a scale version of the camera
+	cameraDimension :=
+		[2]f32 {
+			f32(rl.GetScreenWidth()) / gState.camera.zoom,
+			f32(rl.GetScreenHeight()) / gState.camera.zoom,
+		} *
+		scaleSize
+
+
+	rl.ClearBackground(rl.SKYBLUE)
+
+	// Drawing the lines
+	rl.DrawRectangleLines(
+		i32(f32(width) * (percent.x)),
+		i32(f32(height) * (percent.y)),
+		i32(cameraDimension.x),
+		i32(cameraDimension.y),
+		rl.BLACK,
+	)
+
+
+	rl.EndTextureMode()
 }
 
 drawMap :: proc(tileMap: ^TileMap) {
@@ -120,8 +160,6 @@ drawMap :: proc(tileMap: ^TileMap) {
 		}
 	}
 
-	row := 0
-	col := 0
 	for rect, idx in tileMap.collision.locations {
 		rl.DrawRectangleRec(rect, rl.RED)
 	}
