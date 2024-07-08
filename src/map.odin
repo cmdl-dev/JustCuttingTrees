@@ -149,6 +149,18 @@ drawMiniMap :: proc(tileMap: ^TileMap, gState: ^GameState) {
 		rl.BLACK,
 	)
 
+	for tree in gState.trees {
+		treePos := tree.position
+
+		rl.DrawRectangle(
+			i32(f32(treePos.x) * (scaleSize.x)),
+			i32(f32(treePos.y) * (scaleSize.y)),
+			i32(4),
+			i32(4),
+			rl.BLACK,
+		)
+	}
+
 
 	rl.EndTextureMode()
 }
