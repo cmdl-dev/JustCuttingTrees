@@ -83,18 +83,14 @@ UserInput :: struct {
 	tabMenuPressed: bool,
 }
 
-// drawMiniMap :: proc(gState: ^GameState) {
-//     using gState
-// 	rl.BeginTextureMode(renderTexture)
-// 	rl.ClearBackground(rl.SKYBLUE)
-//
-//     rl.EndTextureMode()
-// }
 
-createManyTrees :: proc(count: i32) -> (trees: [dynamic]Tree) {
+createManyTrees :: proc(count: i32, gState: ^GameState) -> (trees: [dynamic]Tree) {
+	mapBounds := getPlayableMapRec(&gState.level)
+
+
 	for c in 0 ..< count {
-		x := rnd.float32_range(200, 1500)
-		y := rnd.float32_range(200, 900)
+        x := rnd.float32_range(mapBounds.x, mapBounds.x + mapBounds.width)
+		y := rnd.float32_range(mapBounds.y, mapBounds.y + mapBounds.height)
 		regularTree := createRegularTree({x, y})
 
 		append(&trees, regularTree)
@@ -147,16 +143,19 @@ main :: proc() {
 		level  = creatTileMap("maps/level1test.ldtk"),
 	}
 
-	gState.renderTexture = rl.LoadRenderTexture(192, 108)
+
+	gState.renderTexture = rl.LoadRenderTexture(constants.MINIMAP_WIDTH, constants.MINIMAP_HEIGHT)
+
 	gState.player = createPlayer(gState.level.playerInitialLocation)
 	gState.camera.target = gState.player.position
 
 	gState.storageBox = createStorageBox({1000, 50})
-	gState.trees = createManyTrees(20)
+	gState.trees = createManyTrees(20, &gState)
+
 
 
 	for !rl.WindowShouldClose() {
-		gState.level->drawMiniMap(&gState)
+		drawMiniMap(&gState)
 
 		delta := rl.GetFrameTime()
 		// Capture input
@@ -283,12 +282,10 @@ draw :: proc(state: ^GameState) {
 	for &tree in trees {
 		tree->draw()
 	}
-	storageBox->drawStorageBox()
-	player->playerDraw()
-
+    player->playerDraw()
+	// storageBox->drawStorageBox()
 
 	fpsPos := rl.GetScreenToWorld2D({state.camera.offset.x, 30}, state.camera)
-	rl.DrawFPS(i32(fpsPos.x), i32(fpsPos.y))
 	drawTotalScore(state, rl.GetScreenToWorld2D({30, 30}, state.camera))
 
 	drawPlayerPosition(&state.player, rl.GetScreenToWorld2D({100, 30}, state.camera))

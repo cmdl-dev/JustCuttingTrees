@@ -5,8 +5,8 @@
   "version": "0.2.0",
   "configurations": [
     {
-      //   "type": "lldb",
-      "type": "cppvsdbg",
+         "type": "lldb",
+      //"type": "cppvsdbg",
       "request": "launch",
       "name": "Debug",
       "program": "${workspaceFolder}/build/main.exe",
