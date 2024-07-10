@@ -85,12 +85,13 @@ UserInput :: struct {
 
 
 createManyTrees :: proc(count: i32, gState: ^GameState) -> (trees: [dynamic]Tree) {
-	mapBounds := getPlayableMapRec(&gState.level)
+	mapBounds := gState.level.playableMapRect
 
 
 	for c in 0 ..< count {
         x := rnd.float32_range(mapBounds.x, mapBounds.x + mapBounds.width)
 		y := rnd.float32_range(mapBounds.y, mapBounds.y + mapBounds.height)
+
 		regularTree := createRegularTree({x, y})
 
 		append(&trees, regularTree)
@@ -133,8 +134,9 @@ main :: proc() {
 
 	camera := rl.Camera2D {
 		offset = {f32(constants.SCREEN_WIDTH / 2), f32(constants.SCREEN_HEIGHT / 2)}, // Camera offset (displacement from target)
-		zoom   = 2, // Camera zoom (scaling), should be 1.0f by default
+		zoom   = 1, // Camera zoom (scaling), should be 1.0f by default
 	}
+
 	gState := GameState {
 		camera = camera,
 		draw   = draw,
@@ -144,7 +146,7 @@ main :: proc() {
 	}
 
 
-	gState.renderTexture = rl.LoadRenderTexture(constants.MINIMAP_WIDTH, constants.MINIMAP_HEIGHT)
+	gState.renderTexture = rl.LoadRenderTexture(i32(gState.level.playableMapRect.width/10),i32(gState.level.playableMapRect.height / 10))
 
 	gState.player = createPlayer(gState.level.playerInitialLocation)
 	gState.camera.target = gState.player.position
@@ -259,7 +261,9 @@ update :: proc(state: ^GameState, delta: f32) {
 	}
 
 
-	state.camera.target = player.position
+    // if !hasReachedCornerOfScreen(&state.camera) {
+    // }
+    state.camera.target = player.position
 	// fmt.printfln("offset", state.camera.offset)
 	player.inventory->move(rl.GetScreenToWorld2D({0, 100}, state.camera))
 }
@@ -292,7 +296,7 @@ draw :: proc(state: ^GameState) {
 
 
 	pos := rl.GetScreenToWorld2D(
-		{f32(constants.SCREEN_WIDTH - (state.renderTexture.texture.width * 2) - 20), 50},
+		{f32(constants.SCREEN_WIDTH - (state.renderTexture.texture.width ) - 4), 10},
 		state.camera,
 	)
 

@@ -112,22 +112,23 @@ PlayerState :: enum {
 }
 
 Player :: struct {
-	using moveable:  Moveable,
-	using actor:     Actor,
-	isSwinging:      bool,
-	sprite:          sprite.AnimatedSprite,
-	interactionRect: Area2D,
-	collisionRect:   Area2D,
-	swingActive:     bool,
-	swingRect:       Area2D,
-	events:          PlayerEvent,
-	inventory:       PlayerInventory,
-	state:           PlayerState,
-	storeLogs:       proc(player: ^Player, storage: ^StorageBox),
-	addReward:       proc(player: ^Player, reward: [dynamic]TreeReward),
-	playerInput:     proc(player: ^Player, userInput: UserInput),
-	playerUpdate:    proc(player: ^Player, collisionTiles: ^CollisionTiles, delta: f32),
-	playerDraw:      proc(player: ^Player),
+	using moveable:     Moveable,
+	using actor:        Actor,
+	isSwinging:         bool,
+	sprite:             sprite.AnimatedSprite,
+	cameraOverrideRect: rl.Rectangle,
+	interactionRect:    Area2D,
+	collisionRect:      Area2D,
+	swingActive:        bool,
+	swingRect:          Area2D,
+	events:             PlayerEvent,
+	inventory:          PlayerInventory,
+	state:              PlayerState,
+	storeLogs:          proc(player: ^Player, storage: ^StorageBox),
+	addReward:          proc(player: ^Player, reward: [dynamic]TreeReward),
+	playerInput:        proc(player: ^Player, userInput: UserInput),
+	playerUpdate:       proc(player: ^Player, collisionTiles: ^CollisionTiles, delta: f32),
+	playerDraw:         proc(player: ^Player),
 }
 
 
@@ -164,6 +165,13 @@ createPlayer :: proc(initialPosition: rl.Vector2) -> Player {
 	)
 	translate(&swingRect, {60, 0})
 
+	cameraOverrideRect := rl.Rectangle {
+		initialPosition.x - (200 / 2),
+		initialPosition.y - (200 / 2),
+		200,
+		200,
+	}
+
 	return Player {
 		actor = actor,
 		moveable = moveable,
@@ -171,6 +179,7 @@ createPlayer :: proc(initialPosition: rl.Vector2) -> Player {
 		storeLogs = storeLogs,
 		interactionRect = interactionRect,
 		collisionRect = collisionRect,
+		cameraOverrideRect = cameraOverrideRect,
 		swingRect = swingRect,
 		inventory = inventory,
 		addReward = playerAddReward,
@@ -237,6 +246,9 @@ playerUpdate :: proc(player: ^Player, collisionTiles: ^CollisionTiles, delta: f3
 		swingRect->update(calculatedDelta)
 		collisionRect->update(calculatedDelta)
 
+		player.cameraOverrideRect.x = player.position.x - (player.cameraOverrideRect.width / 2)
+		player.cameraOverrideRect.y = player.position.y - (player.cameraOverrideRect.height / 2)
+
 	} else {
 
 		if player.sprite->isFrameActive() && isSwinging {
@@ -284,6 +296,14 @@ playerDraw :: proc(player: ^Player) {
 	player.inventory->drawInventory()
 	player.interactionRect->draw()
 	player.collisionRect->draw()
+
+	rl.DrawRectangleLines(
+		i32(player.cameraOverrideRect.x),
+		i32(player.cameraOverrideRect.y),
+		i32(player.cameraOverrideRect.width),
+		i32(player.cameraOverrideRect.height),
+		rl.BLACK,
+	)
 
 	// if sprite.eventOccured(&player.sprite, sprite.AnimationEventKeys.FINISHED) {
 	// 	fmt.println("Finished animation")
