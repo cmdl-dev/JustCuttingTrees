@@ -121,6 +121,7 @@ drawTotalScore :: proc(gameState: ^GameState, position: rl.Vector2) {
 
 
 main :: proc() {
+
 	window := Window {
 		width  = constants.SCREEN_WIDTH,
 		height = constants.SCREEN_HEIGHT,
