@@ -57,11 +57,13 @@ createStorageBox :: proc(location: rl.Vector2) -> StorageBox {
 		drawStorageBox = drawStorageBox,
 	}
 }
+
 drawStorageBox :: proc(storageBox: ^StorageBox) {
 	using storageBox
 
 	rl.DrawRectangle(i32(x), i32(y), i32(width), i32(height), rl.ORANGE)
 }
+
 GameState :: struct {
 	level:           TileMap,
 	player:          Player,
@@ -86,7 +88,6 @@ UserInput :: struct {
 
 createManyTrees :: proc(count: i32, gState: ^GameState) -> (trees: [dynamic]Tree) {
 	mapBounds := gState.level.playableMapRect
-
 
 	for c in 0 ..< count {
         x := rnd.float32_range(mapBounds.x, mapBounds.x + mapBounds.width)

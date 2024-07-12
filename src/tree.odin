@@ -97,6 +97,7 @@ onUpdate :: proc(tree: ^Tree) {
 	}
 
 }
+
 onInteractable :: proc(tree: ^Tree, player: ^Player) {
 	success, reward := tree->onCut()
 	tree.sprite->playAnimation("Hit")
@@ -111,6 +112,7 @@ drawTree :: proc(tree: ^Tree) {
 	using tree
 	sprite->draw()
 	area->draw()
+
 }
 
 RegularTree :: struct {

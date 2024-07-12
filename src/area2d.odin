@@ -61,7 +61,7 @@ updateLocation :: proc(area: ^Area2D, deltaPos: rl.Vector2) {
 
 GetAdjustedVectorFromCollision :: proc(
 	box: rl.Rectangle,
-	boxes: []rl.Rectangle,
+	boxes: [dynamic]rl.Rectangle,
 	calculatedPosition: rl.Vector2,
 ) -> (
 	pos: rl.Vector2,

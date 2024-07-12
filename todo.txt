@@ -4,17 +4,19 @@ Create a background of grass or field {cm:2024-07-01}
 Get a lumberjack for the user {cm:2024-06-27}
 Customize the inventory menu to show how much of each item we have {start:2024-06-30T10:07:16} {cm:2024-06-30} {duration:32m}
 When the tree is cut we should put a treestump {cm:2024-06-30}
-Add sound of cutting when we interact with it
+Add collision {cm:2024-07-04}
 add the origin of tree to be in the bottom of the tree {cm:2024-06-30}
-find/create a storage container instead of the organge sqare
-create a file format so that with player/sprite information so that I can save a users preference
 add animation / effect when I interact with the tree {start:2024-06-29T22:29:22} {cm:2024-06-30} {duration:11h21m}
+change inventory from attached to the user into its own menu {start:2024-06-26T12:55:11} {f} {cm:2024-06-27} {duration:1d_07h33m}
 create more trees {cm:2024-06-30}
-stop the camera from moving if the corners reach the outerbounds of the map
+
+---------------------------------------------------
+
+Support enums on the tileset, used for collision
+Add sound of cutting when we interact with it
+find/create a storage container instead of the organge sqare
 resizeable window
 add background sound
-change inventory from attached to the user into its own menu {start:2024-06-26T12:55:11} {f} {cm:2024-06-27} {duration:1d_07h33m}
 Have an out line for tree he is going to be cutting
 Adding a minimap
 Create Dragon with overalls
-Add collision {cm:2024-07-04}

@@ -1,6 +1,7 @@
 package main
 
 import "core:fmt"
+import "core:slice"
 import "shared"
 
 import path "core:path/filepath"
@@ -17,7 +18,7 @@ TileMap :: struct {
 	draw:                  proc(tileMap: ^TileMap),
 }
 CollisionTiles :: struct {
-	locations: []rl.Rectangle,
+	locations: [dynamic]rl.Rectangle,
 	width:     int,
 	height:    int,
 	gridSize:  int,
@@ -36,9 +37,23 @@ IntGridValues :: enum {
 	TotalAreaBounds,
 }
 
+
 creatTileMap :: proc(level: string) -> TileMap {
 	tileMap: TileMap
+	enumTagValueMap := make(map[string][]int)
+	defer delete(enumTagValueMap)
+	collisionTiles: [dynamic]rl.Rectangle
+
 	if project, ok := ldtk.load_from_file(level); ok {
+		for ts in project.defs.tilesets {
+			// Store enum tags information
+			for enums in ts.enum_tags {
+				switch enums.enum_value_id {
+				case "Collision":
+					enumTagValueMap["OnGroundDeco"] = enums.tile_ids
+				}
+			}
+		}
 
 		for level in project.levels {
 			for layer in level.layer_instances {
@@ -49,10 +64,6 @@ creatTileMap :: proc(level: string) -> TileMap {
 
 					tileMap.collision.gridSize = layer.grid_size
 					//tile_size = 720 / tile_rows
-					collisionTiles := make(
-						[]rl.Rectangle,
-						tileMap.collision.width * tileMap.collision.height,
-					)
 
 					row := 0
 					col := 0
@@ -60,12 +71,15 @@ creatTileMap :: proc(level: string) -> TileMap {
 					paArr: [dynamic]rl.Vector2 = {}
 					for val, idx in layer.int_grid_csv {
 						if IntGridValues(val) == .Collision {
-							collisionTiles[idx] = rl.Rectangle {
-								f32(col * layer.grid_size),
-								f32(row * layer.grid_size),
-								f32(layer.grid_size),
-								f32(layer.grid_size),
-							}
+							append(
+								&collisionTiles,
+								rl.Rectangle {
+									f32(col * layer.grid_size),
+									f32(row * layer.grid_size),
+									f32(layer.grid_size),
+									f32(layer.grid_size),
+								},
+							)
 						}
 						if IntGridValues(val) == .TotalAreaBounds {
 							append(
@@ -89,7 +103,6 @@ creatTileMap :: proc(level: string) -> TileMap {
 					assert(len(taArr) == 2, "Total Area Bounds not set properly")
 					assert(len(paArr) == 2, "Player Area Bounds not set properly")
 
-					tileMap.collision.locations = collisionTiles
 
 					tileMap.totalMapRect = {
 						taArr[0].x,
@@ -124,6 +137,23 @@ creatTileMap :: proc(level: string) -> TileMap {
 					for val, idx in layer.grid_tiles {
 						tile_data[idx].texture = texture
 						tile_data[idx].layerName = layer.identifier
+						if enumVals, ok := enumTagValueMap[layer.identifier]; ok {
+							if slice.contains(enumVals, val.t) {
+								fmt.println("Collision on ", val.src)
+
+								append(
+									&collisionTiles,
+									rl.Rectangle {
+										f32(val.px.x),
+										f32(val.px.y),
+										f32(layer.grid_size),
+										f32(layer.grid_size),
+									},
+								)
+							}
+
+
+						}
 						// Where its going to go on the screen 
 						tile_data[idx].position = {f32(val.px.x), f32(val.px.y)}
 						// What part of the map 
@@ -141,6 +171,8 @@ creatTileMap :: proc(level: string) -> TileMap {
 			}
 		}
 	}
+
+	tileMap.collision.locations = collisionTiles
 	tileMap.draw = drawMap
 	return tileMap
 }
@@ -190,7 +222,6 @@ drawMiniMap :: proc(gState: ^GameState) {
 		i32(cameraDimension.y),
 		rl.BLACK,
 	)
-
 	for &tree in trees {
 		treePos := tree.position
 
