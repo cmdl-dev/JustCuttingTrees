@@ -12,10 +12,17 @@ import ldtk "../ldtk"
 TileMap :: struct {
 	layers:                [dynamic][]Tile,
 	collision:             CollisionTiles,
+	enter:                 EnterTiles,
 	playerInitialLocation: rl.Vector2,
 	playableMapRect:       rl.Rectangle,
 	totalMapRect:          rl.Rectangle,
 	draw:                  proc(tileMap: ^TileMap),
+}
+EnterTiles :: struct {
+	locations: [dynamic]rl.Rectangle,
+	width:     int,
+	height:    int,
+	gridSize:  int,
 }
 CollisionTiles :: struct {
 	locations: [dynamic]rl.Rectangle,
@@ -37,12 +44,19 @@ IntGridValues :: enum {
 	TotalAreaBounds,
 }
 
+EnumTagValuesTypes :: enum {
+	COLLISION,
+	ENTER,
+	_COUNT,
+}
+
 
 creatTileMap :: proc(level: string) -> TileMap {
 	tileMap: TileMap
-	enumTagValueMap := make(map[string][]int)
-	defer delete(enumTagValueMap)
+	enumTagValueMap := make(map[string][2][]int)
+
 	collisionTiles: [dynamic]rl.Rectangle
+	enterTiles: [dynamic]rl.Rectangle
 
 	if project, ok := ldtk.load_from_file(level); ok {
 		for ts in project.defs.tilesets {
@@ -50,7 +64,14 @@ creatTileMap :: proc(level: string) -> TileMap {
 			for enums in ts.enum_tags {
 				switch enums.enum_value_id {
 				case "Collision":
-					enumTagValueMap["OnGroundDeco"] = enums.tile_ids
+					t := enumTagValueMap["OnGroundDeco"]
+					t[EnumTagValuesTypes.COLLISION] = enums.tile_ids
+					enumTagValueMap["OnGroundDeco"] = t
+				case "Enter":
+					t := enumTagValueMap["OnGroundDeco"]
+					t[EnumTagValuesTypes.ENTER] = enums.tile_ids
+					enumTagValueMap["OnGroundDeco"] = t
+
 				}
 			}
 		}
@@ -137,10 +158,24 @@ creatTileMap :: proc(level: string) -> TileMap {
 					for val, idx in layer.grid_tiles {
 						tile_data[idx].texture = texture
 						tile_data[idx].layerName = layer.identifier
-						if enumVals, ok := enumTagValueMap[layer.identifier]; ok {
-							if slice.contains(enumVals, val.t) {
-								fmt.println("Collision on ", val.src)
 
+						if enumVals, ok := enumTagValueMap[layer.identifier]; ok {
+							colVals := enumVals[EnumTagValuesTypes.COLLISION]
+							enterVals := enumVals[EnumTagValuesTypes.ENTER]
+
+
+							if slice.contains(enterVals, val.t) {
+								append(
+									&enterTiles,
+									rl.Rectangle {
+										f32(val.px.x),
+										f32(val.px.y),
+										f32(layer.grid_size),
+										f32(layer.grid_size),
+									},
+								)
+							}
+							if slice.contains(colVals, val.t) {
 								append(
 									&collisionTiles,
 									rl.Rectangle {
@@ -173,6 +208,7 @@ creatTileMap :: proc(level: string) -> TileMap {
 	}
 
 	tileMap.collision.locations = collisionTiles
+	tileMap.enter.locations = enterTiles
 	tileMap.draw = drawMap
 	return tileMap
 }
@@ -250,5 +286,8 @@ drawMap :: proc(tileMap: ^TileMap) {
 
 	for rect, idx in tileMap.collision.locations {
 		rl.DrawRectangleRec(rect, rl.RED)
+	}
+	for rect, idx in tileMap.enter.locations {
+		rl.DrawRectangleRec(rect, rl.GREEN)
 	}
 }

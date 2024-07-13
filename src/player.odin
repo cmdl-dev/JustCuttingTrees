@@ -297,14 +297,6 @@ playerDraw :: proc(player: ^Player) {
 	player.interactionRect->draw()
 	player.collisionRect->draw()
 
-	rl.DrawRectangleLines(
-		i32(player.cameraOverrideRect.x),
-		i32(player.cameraOverrideRect.y),
-		i32(player.cameraOverrideRect.width),
-		i32(player.cameraOverrideRect.height),
-		rl.BLACK,
-	)
-
 	// if sprite.eventOccured(&player.sprite, sprite.AnimationEventKeys.FINISHED) {
 	// 	fmt.println("Finished animation")
 
