@@ -213,6 +213,40 @@ creatTileMap :: proc(level: string) -> TileMap {
 	return tileMap
 }
 
+getEnterLocation :: proc(tm: TileMap) -> rl.Rectangle {
+	largestY :: proc(loc: [dynamic]rl.Rectangle) -> (large: rl.Rectangle) {
+		large = loc[0]
+		for rect in loc {
+			if rect.y > large.y {
+				large = rect
+			} else if rect.y == large.y && rect.x > large.x {
+				large = rect
+			}
+		}
+		return
+	}
+	smallestX :: proc(loc: [dynamic]rl.Rectangle) -> (small: rl.Rectangle) {
+		small = loc[0]
+		for rect in loc {
+			if rect.x < small.x {
+				small = rect
+			} else if rect.x == small.x && rect.y < small.y {
+				small = rect
+			}
+		}
+		return
+	}
+	smX := smallestX(tm.enter.locations)
+	lgY := largestY(tm.enter.locations)
+
+	return rl.Rectangle {
+		x = smX.x,
+		y = smX.y,
+		width = lgY.x - smX.x + 16,
+		height = lgY.y - smX.y + 16,
+	}
+
+}
 getMapSizes :: proc(bounds: [dynamic]rl.Vector2) -> rl.Vector2 {
 	width := bounds[1].x - bounds[0].x
 	height := bounds[1].y - bounds[0].y
@@ -284,10 +318,10 @@ drawMap :: proc(tileMap: ^TileMap) {
 		}
 	}
 
-	for rect, idx in tileMap.collision.locations {
-		rl.DrawRectangleRec(rect, rl.RED)
-	}
-	for rect, idx in tileMap.enter.locations {
-		rl.DrawRectangleRec(rect, rl.GREEN)
-	}
+	// for rect, idx in tileMap.collision.locations {
+	// 	rl.DrawRectangleRec(rect, rl.RED)
+	// }
+	// for rect, idx in tileMap.enter.locations {
+	// 	rl.DrawRectangleRec(rect, rl.GREEN)
+	// }
 }

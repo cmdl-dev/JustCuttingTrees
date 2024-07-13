@@ -47,13 +47,13 @@ StorageBox :: struct {
 	drawStorageBox: proc(storageBox: ^StorageBox),
 }
 
-createStorageBox :: proc(location: rl.Vector2) -> StorageBox {
+createStorageBox :: proc(rect: rl.Rectangle) -> StorageBox {
 
 	return {
-		x = location.x,
-		y = location.y,
-		width = 50,
-		height = 30,
+		x = rect.x,
+		y = rect.y,
+		width = rect.width,
+		height = rect.height,
 		drawStorageBox = drawStorageBox,
 	}
 }
@@ -61,7 +61,8 @@ createStorageBox :: proc(location: rl.Vector2) -> StorageBox {
 drawStorageBox :: proc(storageBox: ^StorageBox) {
 	using storageBox
 
-	rl.DrawRectangle(i32(x), i32(y), i32(width), i32(height), rl.ORANGE)
+	// rl.DrawRectangle(i32(x), i32(y), i32(width), i32(height), rl.ORANGE)
+	rl.DrawRectangleLines(i32(x), i32(y), i32(width), i32(height), rl.ORANGE)
 }
 
 GameState :: struct {
@@ -153,7 +154,7 @@ main :: proc() {
 	gState.player = createPlayer(gState.level.playerInitialLocation)
 	gState.camera.target = gState.player.position
 
-	gState.storageBox = createStorageBox({1000, 50})
+	gState.storageBox = createStorageBox(getEnterLocation(gState.level))
 	gState.trees = createManyTrees(20, &gState)
 
 
@@ -198,7 +199,7 @@ getUserInput :: proc() -> (userInput: UserInput) {
 		userInput.direction.x += 1
 	}
 
-	if (rl.IsKeyPressed(rl.KeyboardKey.P)) {
+	if (rl.IsKeyPressed(rl.KeyboardKey.E)) {
 		userInput.justInteracted = true
 	}
 	if (rl.IsKeyPressed(rl.KeyboardKey.TAB)) {
@@ -257,9 +258,10 @@ update :: proc(state: ^GameState, delta: f32) {
 	}
 
 	if player.state == PlayerState.INTERACTION {
-		if rl.CheckCollisionRecs(storageBox, player.interactionRect) {
-			player->storeLogs(&storageBox)
-		}
+
+            if rl.CheckCollisionRecs(storageBox, player.interactionRect) {
+                player->storeLogs(&storageBox)
+        }
 	}
 
 
@@ -289,7 +291,7 @@ draw :: proc(state: ^GameState) {
 		tree->draw()
 	}
     player->playerDraw()
-	// storageBox->drawStorageBox()
+	storageBox->drawStorageBox()
 
 	fpsPos := rl.GetScreenToWorld2D({state.camera.offset.x, 30}, state.camera)
 	drawTotalScore(state, rl.GetScreenToWorld2D({30, 30}, state.camera))
