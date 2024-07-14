@@ -36,6 +36,20 @@ createLogReward :: proc(type: LogType) -> TreeReward {
 	return {type, LogToValueMap[type]}
 }
 
+LogAnim :: struct {
+	sprite:   sprite.AnimatedSprite,
+	isActive: bool,
+}
+
+createLogAnimation :: proc(initialPosition: rl.Vector2) -> LogAnim {
+	sprite, ok := sprite.createAnimatedSprite("log", initialPosition)
+	if !ok {
+		fmt.println("Create wood not ok")
+	}
+
+	return LogAnim{sprite = sprite, isActive = false}
+}
+
 TreeState :: enum {
 	GROWN,
 	CUT,
@@ -47,6 +61,7 @@ Tree :: struct {
 	using cuttable: Cuttable,
 	state:          TreeState,
 	area:           Area2D,
+	log:            LogAnim,
 	reward:         [dynamic]TreeReward,
 	sprite:         sprite.AnimatedSprite,
 	draw:           proc(tree: ^Tree),
@@ -72,9 +87,12 @@ createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: rl.Vecto
 	translate(&area2D, baseOffset)
 	area2D->update({0, 0})
 
+	log := createLogAnimation(initialPosition)
+	log.sprite->playAnimation("W_Spawn")
 	return {
 		actor = actor,
 		cuttable = cuttable,
+		log = log,
 		draw = drawTree,
 		area = area2D,
 		sprite = sprite,
@@ -92,12 +110,10 @@ onUpdate :: proc(tree: ^Tree) {
 		return
 
 	}
-	if !tree.sprite.animatable.isAnimationPlaying {
-		tree.sprite->playAnimation("Idle")
-	}
 
 }
 
+// TODO: update the add reward from tree to log
 onInteractable :: proc(tree: ^Tree, player: ^Player) {
 	success, reward := tree->onCut()
 	tree.sprite->playAnimation("Hit")
@@ -109,10 +125,15 @@ onInteractable :: proc(tree: ^Tree, player: ^Player) {
 }
 
 drawTree :: proc(tree: ^Tree) {
-	using tree
-	sprite->draw()
-	area->draw()
+	tree.sprite->draw()
+	tree.area->draw()
 
+	if tree.log.isActive {
+		tree.log.sprite->draw()
+		if sprite.eventOccured(&tree.sprite, sprite.AnimationEventKeys.FINISHED) {
+			tree.log.sprite->playAnimation("W_Idle")
+		}
+	}
 }
 
 RegularTree :: struct {
@@ -136,7 +157,7 @@ createRegularTree :: proc(initialPosition: rl.Vector2) -> RegularTree {
 
 onRegularTreeDeath :: proc(tree: ^Tree) {
 	// TODO: spawn a tree logs on the floor
-	fmt.println("I diead")
+	tree.log.isActive = true
 }
 
 onCutRegularTree :: proc(tree: ^Tree) -> (success: bool, reward: [dynamic]TreeReward) {

@@ -5,16 +5,17 @@ Get a lumberjack for the user {cm:2024-06-27}
 Customize the inventory menu to show how much of each item we have {start:2024-06-30T10:07:16} {cm:2024-06-30} {duration:32m}
 When the tree is cut we should put a treestump {cm:2024-06-30}
 Add collision {cm:2024-07-04}
-add the origin of tree to be in the bottom of the tree {cm:2024-06-30}
 add animation / effect when I interact with the tree {start:2024-06-29T22:29:22} {cm:2024-06-30} {duration:11h21m}
+add the origin of tree to be in the bottom of the tree {cm:2024-06-30}
 change inventory from attached to the user into its own menu {start:2024-06-26T12:55:11} {f} {cm:2024-06-27} {duration:1d_07h33m}
 create more trees {cm:2024-06-30}
+Support enums on the tileset, used for collision
+find/create a storage container instead of the organge sqare
 
 ---------------------------------------------------
 
-Support enums on the tileset, used for collision
+Drop Logs then you cut down trees and pick them with interact
 Add sound of cutting when we interact with it
-find/create a storage container instead of the organge sqare
 resizeable window
 add background sound
 Have an out line for tree he is going to be cutting

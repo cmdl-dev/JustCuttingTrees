@@ -98,7 +98,7 @@ getAnimationFiles :: proc(name: string) -> (AnimationFileResult, bool) {
 createAnimatedSprite :: proc(name: string, initialPosition: rl.Vector2) -> (AnimatedSprite, bool) {
 	absPath, foundFiles := getAnimationFiles(name)
 
-	assert(foundFiles, strings.concatenate({"Could not load Animation File for:", name}))
+	assert(foundFiles, strings.concatenate({"Could not load Animation File for: ", name}))
 
 
 	data, ok := aesprite.loadFromFile(absPath.jsonPath)
@@ -107,6 +107,7 @@ createAnimatedSprite :: proc(name: string, initialPosition: rl.Vector2) -> (Anim
 	}
 
 	sprite := createSprite(shared.stringToCString(absPath.pngPath), initialPosition)
+
 
 	animatable := createAnimatable(
 	sprite.texture.width,

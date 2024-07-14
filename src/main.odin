@@ -149,6 +149,8 @@ main :: proc() {
 	}
 
 
+    // wood := createLogAnimation({1000,1000})
+    // wood.sprite->playAnimation("W_Spawn")
 	gState.renderTexture = rl.LoadRenderTexture(i32(gState.level.playableMapRect.width/10),i32(gState.level.playableMapRect.height / 10))
 
 	gState.player = createPlayer(gState.level.playerInitialLocation)
@@ -175,6 +177,7 @@ main :: proc() {
 
 		// // Handle draw
 		gState->draw()
+        // wood.sprite->draw()
 
 
 		rl.EndMode2D()

@@ -1,6 +1,7 @@
 package aesprite
 
 import "core:encoding/json"
+import "core:fmt"
 import "core:os"
 
 loadFromFile :: proc(filename: string, allocator := context.allocator) -> (AespriteProject, bool) {
@@ -8,12 +9,15 @@ loadFromFile :: proc(filename: string, allocator := context.allocator) -> (Aespr
 	if !ok {
 		return AespriteProject{}, false
 	}
+	fmt.println(filename)
 	return loadFromMemory(data, allocator)
 }
 
 loadFromMemory :: proc(data: []byte, allocator := context.allocator) -> (AespriteProject, bool) {
 	result: AespriteProject
 	err := json.unmarshal(data, &result, json.DEFAULT_SPECIFICATION, allocator)
+
+	fmt.println(err)
 	if err == nil {
 		return result, true
 	}
