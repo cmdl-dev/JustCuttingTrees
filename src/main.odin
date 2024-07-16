@@ -149,8 +149,6 @@ main :: proc() {
 	}
 
 
-    // wood := createLogAnimation({1000,1000})
-    // wood.sprite->playAnimation("W_Spawn")
 	gState.renderTexture = rl.LoadRenderTexture(i32(gState.level.playableMapRect.width/10),i32(gState.level.playableMapRect.height / 10))
 
 	gState.player = createPlayer(gState.level.playerInitialLocation)
@@ -255,23 +253,25 @@ update :: proc(state: ^GameState, delta: f32) {
 		onUpdate(&tree)
 		if playerIsSwing(&player) {
 			if !tree->isDead() && rl.CheckCollisionRecs(player.swingRect, tree.area) {
-				tree->onInteractable(&player)
+				tree->onInteractable()
 			}
 		}
+        if player.state == PlayerState.INTERACTION && tree.log.isActive {
+             if rl.CheckCollisionRecs(tree.log.interaction, player.interactionRect) {
+                tree.log.onLogInteract(&tree, &player)
+            }
+        }
+
 	}
 
 	if player.state == PlayerState.INTERACTION {
-
             if rl.CheckCollisionRecs(storageBox, player.interactionRect) {
                 player->storeLogs(&storageBox)
-        }
+            }
 	}
 
 
-    // if !hasReachedCornerOfScreen(&state.camera) {
-    // }
     state.camera.target = player.position
-	// fmt.printfln("offset", state.camera.offset)
 	player.inventory->move(rl.GetScreenToWorld2D({0, 100}, state.camera))
 }
 

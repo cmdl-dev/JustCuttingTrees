@@ -7,7 +7,7 @@ import rl "vendor:raylib"
 
 Cuttable :: struct {
 	health: int,
-	onCut:  proc(tree: ^Tree) -> (success: bool, reward: [dynamic]TreeReward),
+	onCut:  proc(tree: ^Tree) -> (success: bool),
 }
 
 createCuttable :: proc(health: int) -> Cuttable {
@@ -37,17 +37,37 @@ createLogReward :: proc(type: LogType) -> TreeReward {
 }
 
 LogAnim :: struct {
-	sprite:   sprite.AnimatedSprite,
-	isActive: bool,
+	sprite:        sprite.AnimatedSprite,
+	isActive:      bool,
+	interaction:   Area2D,
+	onLogInteract: proc(log: ^Tree, player: ^Player),
 }
 
 createLogAnimation :: proc(initialPosition: rl.Vector2) -> LogAnim {
+
+	area2D := createArea2D(
+		AreaType.INTERACTION,
+		{0, 0},
+		rl.Rectangle{initialPosition.x, initialPosition.y, 32, 32},
+	)
+	// translate(&area2D, baseOffset)
+	// area2D->update({0, 0})
+
 	sprite, ok := sprite.createAnimatedSprite("log", initialPosition)
 	if !ok {
 		fmt.println("Create wood not ok")
 	}
 
-	return LogAnim{sprite = sprite, isActive = false}
+	return LogAnim {
+		sprite = sprite,
+		isActive = false,
+		interaction = area2D,
+		onLogInteract = onLogInteract,
+	}
+}
+onLogInteract :: proc(tree: ^Tree, player: ^Player) {
+	tree.log.isActive = false
+	player->addReward(tree.reward)
 }
 
 TreeState :: enum {
@@ -65,7 +85,7 @@ Tree :: struct {
 	reward:         [dynamic]TreeReward,
 	sprite:         sprite.AnimatedSprite,
 	draw:           proc(tree: ^Tree),
-	onInteractable: proc(tree: ^Tree, actor: ^Player),
+	onInteractable: proc(tree: ^Tree),
 	isDead:         proc(tree: ^Tree) -> bool,
 	onTreeDeath:    proc(tree: ^Tree),
 }
@@ -87,12 +107,9 @@ createTree :: proc(fileName: cstring, treeHealth: int, initialPosition: rl.Vecto
 	translate(&area2D, baseOffset)
 	area2D->update({0, 0})
 
-	log := createLogAnimation(initialPosition)
-	log.sprite->playAnimation("W_Spawn")
 	return {
 		actor = actor,
 		cuttable = cuttable,
-		log = log,
 		draw = drawTree,
 		area = area2D,
 		sprite = sprite,
@@ -114,12 +131,12 @@ onUpdate :: proc(tree: ^Tree) {
 }
 
 // TODO: update the add reward from tree to log
-onInteractable :: proc(tree: ^Tree, player: ^Player) {
-	success, reward := tree->onCut()
+onInteractable :: proc(tree: ^Tree) {
+	success := tree->onCut()
 	tree.sprite->playAnimation("Hit")
 	if (success) {
 		tree->onTreeDeath()
-		player->addReward(reward)
+		// player->addReward(reward)
 	}
 
 }
@@ -130,6 +147,7 @@ drawTree :: proc(tree: ^Tree) {
 
 	if tree.log.isActive {
 		tree.log.sprite->draw()
+		tree.log.interaction->draw()
 		if sprite.eventOccured(&tree.sprite, sprite.AnimationEventKeys.FINISHED) {
 			tree.log.sprite->playAnimation("W_Idle")
 		}
@@ -157,13 +175,16 @@ createRegularTree :: proc(initialPosition: rl.Vector2) -> RegularTree {
 
 onRegularTreeDeath :: proc(tree: ^Tree) {
 	// TODO: spawn a tree logs on the floor
+
+	log := createLogAnimation(tree.position)
+	log.sprite->playAnimation("W_Spawn")
+	tree.log = log
 	tree.log.isActive = true
 }
 
-onCutRegularTree :: proc(tree: ^Tree) -> (success: bool, reward: [dynamic]TreeReward) {
+onCutRegularTree :: proc(tree: ^Tree) -> (success: bool) {
 
 	success = false
-	reward = {}
 
 	// it shouldn't be on the screen, but still checking for it 
 	if tree.state != TreeState.GROWN {
@@ -173,7 +194,6 @@ onCutRegularTree :: proc(tree: ^Tree) -> (success: bool, reward: [dynamic]TreeRe
 	tree.health -= 1
 	if (tree.health <= 0) {
 		tree.state = TreeState.CUT
-		reward = tree.reward
 		success = true
 	}
 	return

@@ -129,18 +129,18 @@ createAnimatedSprite :: proc(name: string, initialPosition: rl.Vector2) -> (Anim
 	}
 
 	for frameTags in data.meta.frameTags {
+		maxFrames :=
+			1 if frameTags.to == frameTags.from else i32(frameTags.to - frameTags.from + 1)
 		animInfo: IAddAnimation = {
-			maxFrames      = frameTags.to == frameTags.from \
-			? 1 \
-			: i32(frameTags.to - frameTags.from + 1),
+			maxFrames      = maxFrames,
 			frameCoords    = {f32(frameTags.from), 0},
 			animationSpeed = 10,
 			activeFrame    = 0,
 			animationPath  = animationFrames[frameTags.from:frameTags.to + 1],
 		}
+
 		if data, ok := frameTags.data.?; ok {
 			animInfo.activeFrame = i32(strconv.atoi(data))
-
 		}
 
 		animatable->addAnimation(frameTags.name, animInfo)
