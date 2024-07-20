@@ -111,7 +111,7 @@ createAnimatedSprite :: proc(name: string, initialPosition: rl.Vector2) -> (Anim
 	animatable := createAnimatable(
 	sprite.texture.width,
 	sprite.texture.height,
-	//TODO: Refactor this. Not needed
+	/* TODO: Refactor this. Not needed */
 	{vFrames = 1, hFrames = i32(len(data.frames))},
 	)
 
