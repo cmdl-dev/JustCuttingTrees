@@ -11,13 +11,17 @@ change inventory from attached to the user into its own menu {start:2024-06-26T1
 create more trees {cm:2024-06-30}
 Support enums on the tileset, used for collision
 find/create a storage container instead of the organge sqare
+Drop Logs then you cut down trees and pick them with interact
+Adding a minimap
 
 ---------------------------------------------------
 
-Drop Logs then you cut down trees and pick them with interact
-Add sound of cutting when we interact with it
-resizeable window
 add background sound
+Add sound of cutting when we interact with it
+
+resizeable window
 Have an out line for tree he is going to be cutting
-Adding a minimap
+
+++++++++++++++++++++++++++++++++++++++++++++++++++
+
 Create Dragon with overalls

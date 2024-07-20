@@ -4,26 +4,41 @@ import "core:encoding/json"
 import "core:fmt"
 import "core:os"
 
-loadFromFile :: proc(filename: string, allocator := context.allocator) -> (AespriteProject, bool) {
+AespriteError :: enum {
+	None,
+	UnmarshalError,
+	ReadFileError,
+}
+
+loadFromFile :: proc(
+	filename: string,
+	allocator := context.allocator,
+) -> (
+	AespriteProject,
+	AespriteError,
+) {
 	data, ok := os.read_entire_file(filename, allocator)
 	if !ok {
-		return AespriteProject{}, false
+		return AespriteProject{}, .ReadFileError
 	}
-	fmt.println(filename)
 	return loadFromMemory(data, allocator)
 }
 
-loadFromMemory :: proc(data: []byte, allocator := context.allocator) -> (AespriteProject, bool) {
+loadFromMemory :: proc(
+	data: []byte,
+	allocator := context.allocator,
+) -> (
+	AespriteProject,
+	AespriteError,
+) {
 	result: AespriteProject
 	err := json.unmarshal(data, &result, json.DEFAULT_SPECIFICATION, allocator)
 
-	fmt.println(err)
-	if err == nil {
-		return result, true
+	if err != nil {
+		return AespriteProject{}, .UnmarshalError
 	}
-	return AespriteProject{}, false
+	return result, .None
 }
-
 
 AespriteProject :: struct {
 	frames: []Frame `json:"frames"`,
@@ -68,7 +83,6 @@ FrameCoords :: struct {
 }
 
 Frame :: struct {
-	// x,y,w,h format
 	fileName:         string `json:"filename"`,
 	frame:            FrameCoordsSize `json:"frame"`,
 	rotated:          bool `json:"rotated"`,

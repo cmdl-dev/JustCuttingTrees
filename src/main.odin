@@ -1,6 +1,4 @@
-
 package main
-
 
 import "constants"
 import "core:fmt"
@@ -232,6 +230,7 @@ hasEnteredCenter :: proc(player: ^Player, camera: ^rl.Camera2D) -> bool {
 
 	return rl.CheckCollisionRecs(player.interactionRect, centerRect)
 }
+
 hasReachedCornerOfScreen :: proc(camera: ^rl.Camera2D) -> bool {
 	pos := rl.GetScreenToWorld2D({0, 0}, camera^)
 	if pos.x <= 0 {
@@ -313,6 +312,4 @@ draw :: proc(state: ^GameState) {
 		pos,
 		rl.WHITE,
 	)
-	// DrawTextureRec(target.texture, (Rectangle) { 0, 0, (float)target.texture.width, (float)-target.texture.height }, (Vector2) { 0, 0 }, WHITE);
-
 }

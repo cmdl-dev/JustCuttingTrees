@@ -68,8 +68,6 @@ AnimationFileResult :: struct {
 	pngPath:  string,
 	jsonPath: string,
 }
-// Gets the .png files and .json files
-// Create anim(AvailableSprites.trees)
 getAnimationFiles :: proc(name: string) -> (AnimationFileResult, bool) {
 	if absPath, ok := path.abs(importsPath); ok {
 		pngPath: string
@@ -101,8 +99,9 @@ createAnimatedSprite :: proc(name: string, initialPosition: rl.Vector2) -> (Anim
 	assert(foundFiles, strings.concatenate({"Could not load Animation File for: ", name}))
 
 
-	data, ok := aesprite.loadFromFile(absPath.jsonPath)
-	if !ok {
+	data, err := aesprite.loadFromFile(absPath.jsonPath)
+	fmt.println(err)
+	if err != nil {
 		return AnimatedSprite{}, false
 	}
 
@@ -154,8 +153,6 @@ createAnimatedSprite :: proc(name: string, initialPosition: rl.Vector2) -> (Anim
 			getHeight = getHeight,
 		},
 		true
-
-
 }
 
 
@@ -181,11 +178,4 @@ drawAnimatedSprite :: proc(sprite: ^AnimatedSprite) {
 		[2]f32{f32(sprite.animationOffsets.x / 2), f32(sprite.animationOffsets.y / 2)},
 		rl.WHITE,
 	)
-	// rl.DrawRectangleLines(
-	// 	i32(sprite.position.x),
-	// 	i32(sprite.position.y),
-	// 	sprite.texture.width,
-	// 	sprite.texture.height,
-	// 	rl.GREEN,
-	// )
 }
